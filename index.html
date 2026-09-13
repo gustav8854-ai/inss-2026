@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aprovação INSS — Técnico do Seguro Social</title>
+<!-- ============================================================
+  TEMPLATE DE CURSINHO DE CONCURSO (motor reutilizável)
+  Para montar um novo concurso, troque:
+   1) window.DMAE_SLUG (identificador único do concurso no backend)  — script no <head>
+   2) <title>, marca do cabeçalho, hero (eyebrow/h1/sub) e a data da prova (var prova=)
+   3) Ficha técnica (#ficha), edital verticalizado (#portugues...#legislacao) e alertas
+   4) Domínio por prioridade (#dominio): os cards Aprenda→Entenda→Na prova
+   5) Conteúdo em JS: arrays SIM, SIM2, SIM3, SIM4 (simulados), TREINOS, FC (flashcards)
+   6) Cronograma (#plano) com as datas do concurso
+  O motor (login Supabase compartilhado, caderno de erros, desempenho, sync, cronômetro)
+  NÃO precisa ser alterado. O conteúdo atual é EXEMPLO (DMAE) — substitua pelo seu concurso.
+============================================================ -->
+<meta name="description" content="Cursinho completo para Técnico do Seguro Social (INSS), nível médio, banca Cebraspe: edital verticalizado com pegadinhas, aulas do zero, plano de estudos com horas por dia, simulados Certo/Errado e flashcards. Foco em Direito Previdenciário e Seguridade Social.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Public+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  /* ===== Tema: água/saneamento (DMAE). Azul institucional + verde "tratada".
+     Claro por padrão; escuro via prefers-color-scheme e [data-theme]. ===== */
+  :root{
+    --bg:#eef3f6; --paper:#ffffff; --paper-2:#f4f8fa;
+    --ink:#122430; --ink-2:#3a5361; --muted:#647d8b; --line:#d7e2e8; --line-2:#e6eef2;
+    --blue:#0d5c86; --blue-2:#1785bf; --blue-soft:#e2f0f8;
+    --teal:#0e8f9c; --green:#1a8f4c; --green-soft:#e3f5ea;
+    --amber:#b45309; --amber-soft:#fbeede; --red:#c0392b; --red-soft:#fbe7e4;
+    --shadow:0 1px 2px rgba(18,36,48,.06),0 8px 24px rgba(18,36,48,.06);
+    --wrongbg:#fbe7e4; --rightbg:#e3f5ea;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0b1418; --paper:#0f1b21; --paper-2:#132430;
+    --ink:#e7eef2; --ink-2:#b3c4cd; --muted:#8399a4; --line:#22343d; --line-2:#1a2a32;
+    --blue:#3ea6dd; --blue-2:#57b6e8; --blue-soft:#12303f;
+    --teal:#2bb6c2; --green:#43c07e; --green-soft:#123026;
+    --amber:#e0a45c; --amber-soft:#2e2410; --red:#e8796c; --red-soft:#2e1613;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    --wrongbg:#2e1613; --rightbg:#123026;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0b1418; --paper:#0f1b21; --paper-2:#132430;
+    --ink:#e7eef2; --ink-2:#b3c4cd; --muted:#8399a4; --line:#22343d; --line-2:#1a2a32;
+    --blue:#3ea6dd; --blue-2:#57b6e8; --blue-soft:#12303f;
+    --teal:#2bb6c2; --green:#43c07e; --green-soft:#123026;
+    --amber:#e0a45c; --amber-soft:#2e2410; --red:#e8796c; --red-soft:#2e1613;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    --wrongbg:#2e1613; --rightbg:#123026;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:70px;overflow-x:clip}
+  body{overflow-x:clip}
+  img,table,pre,.tw{max-width:100%}
+  /* impede que textos longos (URLs, código) estourem a largura no celular */
+  p,li,td,th,dd,dt,h1,h2,h3,h4,span,a,b,strong,em,label{overflow-wrap:break-word}
+  code{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans",system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:"Lora",Georgia,serif;line-height:1.2;text-wrap:balance}
+  a{color:var(--blue)}
+  .serif{font-family:"Lora",Georgia,serif}
+
+  /* topbar */
+  .top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .top .in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px 18px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.01em}
+  .brand .drop{width:26px;height:26px;border-radius:50% 50% 50% 8px;transform:rotate(45deg);background:linear-gradient(135deg,var(--blue-2),var(--teal));box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+  .brand b{color:var(--blue)}
+  .top .sp{flex:1}
+  .cd{font-size:12.5px;color:var(--ink-2);font-weight:600;border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap}
+  .cd b{color:var(--red);font-variant-numeric:tabular-nums}
+  .tbtn{border:1px solid var(--line);background:var(--paper);color:var(--ink-2);border-radius:9px;padding:6px 9px;cursor:pointer;font-size:14px}
+  .menub{display:none}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px;display:grid;grid-template-columns:236px 1fr;gap:30px;align-items:start}
+  /* TOC */
+  nav.toc{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:18px 0 40px;font-size:14px}
+  nav.toc a{display:block;color:var(--ink-2);text-decoration:none;padding:6px 10px;border-radius:7px;border-left:2px solid transparent}
+  nav.toc a:hover{background:var(--paper-2);color:var(--ink)}
+  nav.toc a.on{color:var(--blue);border-left-color:var(--blue);background:var(--blue-soft);font-weight:600}
+  nav.toc .grp{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:16px 10px 4px;font-weight:700}
+  main{min-width:0;padding-bottom:80px}
+
+  section{scroll-margin-top:70px;margin:34px 0}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow)}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin:0 0 6px}
+  h2.sec{font-size:clamp(22px,3.2vw,30px);margin:0 0 14px;color:var(--ink);border-bottom:2px solid var(--blue);padding-bottom:8px;display:inline-block}
+  h3{font-size:19px;margin:22px 0 8px;color:var(--blue)}
+  h4{font-size:15.5px;margin:16px 0 6px}
+  p{margin:0 0 12px;max-width:72ch}
+  ul,ol{margin:0 0 12px;padding-left:22px}
+  li{margin:5px 0;max-width:72ch}
+  strong{color:var(--ink)}
+  .lead{font-size:17px;color:var(--ink-2)}
+  code{background:var(--paper-2);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;font-size:.9em}
+
+  /* hero */
+  .hero{position:relative;overflow:hidden;border-radius:20px;border:1px solid var(--line);background:
+     radial-gradient(120% 90% at 88% -10%, color-mix(in srgb,var(--blue-2) 24%, transparent), transparent 60%),
+     linear-gradient(180deg,var(--paper),var(--paper-2));padding:34px 28px;margin-top:22px}
+  .hero h1{font-size:clamp(28px,5vw,46px);margin:8px 0 6px;letter-spacing:-.01em}
+  .hero h1 em{font-style:normal;color:var(--blue)}
+  .hero .sub{font-size:17px;color:var(--ink-2);max-width:60ch}
+  .facts{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .fact{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:9px 13px;font-size:13.5px}
+  .fact b{display:block;font-size:16px;color:var(--blue);font-family:"Lora",serif}
+
+  /* alert */
+  .alert{border-radius:14px;padding:14px 16px;margin:14px 0;border:1px solid;font-size:14.5px}
+  .alert b{font-weight:800}
+  .alert.red{background:var(--red-soft);border-color:color-mix(in srgb,var(--red) 40%,var(--line))}
+  .alert.amber{background:var(--amber-soft);border-color:color-mix(in srgb,var(--amber) 40%,var(--line))}
+  .alert.blue{background:var(--blue-soft);border-color:color-mix(in srgb,var(--blue) 30%,var(--line))}
+  .alert .tag{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+  .alert.red .tag{color:var(--red)} .alert.amber .tag{color:var(--amber)} .alert.blue .tag{color:var(--blue)}
+
+  /* tables */
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:12px 0}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+  th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line-2)}
+  th{background:var(--paper-2);color:var(--blue);font-weight:700;position:sticky;top:0}
+  tbody tr:last-child td{border-bottom:0}
+  td.k{font-weight:600;color:var(--ink);white-space:nowrap}
+  .pri{font-weight:800;font-size:11px;padding:2px 7px;border-radius:6px}
+  .p1{background:var(--red-soft);color:var(--red)} .p2{background:var(--amber-soft);color:var(--amber)} .p3{background:var(--paper-2);color:var(--muted)}
+  .peg{color:var(--amber)}
+
+  /* weight bars */
+  .weights{display:grid;gap:9px;margin:10px 0}
+  .wrow{display:grid;grid-template-columns:200px 1fr 54px;gap:12px;align-items:center;font-size:14px}
+  .bar{height:14px;background:var(--paper-2);border-radius:999px;overflow:hidden;border:1px solid var(--line-2)}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue-2),var(--teal));border-radius:999px}
+  @media(max-width:560px){.wrow{grid-template-columns:1fr;gap:3px}.wrow .bar{grid-row:2}}
+
+  /* simulado */
+  .q{border:1px solid var(--line);border-radius:13px;padding:16px 18px;margin:14px 0;background:var(--paper)}
+  .q .qn{font-weight:700;color:var(--blue);font-size:13px;letter-spacing:.02em}
+  .q .qt{margin:4px 0 12px;font-weight:500}
+  .opt{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border:1px solid var(--line);border-radius:10px;margin:6px 0;cursor:pointer;transition:background .12s,border-color .12s}
+  .opt:hover{background:var(--paper-2)}
+  .opt input{margin-top:3px}
+  .opt .lt{font-weight:700;color:var(--ink-2)}
+  .opt.right{background:var(--rightbg);border-color:var(--green)}
+  .opt.wrong{background:var(--wrongbg);border-color:var(--red)}
+  .expl{display:none;margin-top:10px;border-left:3px solid var(--blue);background:var(--paper-2);padding:9px 13px;border-radius:0 8px 8px 0;font-size:14px}
+  .expl.show{display:block}
+  .expl b.ok{color:var(--green)} .expl b.no{color:var(--red)}
+  .passage{background:var(--paper-2);border:1px solid var(--line-2);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:12px 16px;margin:10px 0;font-style:italic}
+  .simbar{position:sticky;bottom:0;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow)}
+  .btn{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:11px 20px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+  .btn:hover{background:var(--blue-2)}
+  .btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--line)}
+  .score{font-weight:800;font-size:16px}
+  .score b{font-family:"Lora",serif;font-size:20px}
+  .blocklabel{font-family:"Lora",serif;font-size:17px;color:var(--teal);margin:22px 0 4px;font-weight:700}
+
+  /* flashcards */
+  .fctools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 14px}
+  .fc{border:1px solid var(--line);border-radius:13px;padding:16px 18px;background:var(--paper);cursor:pointer;min-height:96px;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--shadow)}
+  .fc .fq{font-weight:600}
+  .fc .fn{font-size:12px;color:var(--muted);font-weight:700}
+  .fc .fa{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ink-2)}
+  .fc.open .fa{display:block}
+  .fc .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .fc.open .hint{display:none}
+
+  /* aula (ensino antes do treino) */
+  .aula{background:var(--blue-soft);border:1px solid color-mix(in srgb,var(--blue) 25%,var(--line));border-radius:12px;padding:14px 16px;margin:6px 0 14px;font-size:14.5px;line-height:1.65}
+  .aula b{color:var(--ink)}
+  .matfilter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+  .matfilter button{border:1px solid var(--line);background:var(--paper);color:var(--ink-2);border-radius:999px;padding:6px 13px;cursor:pointer;font:inherit;font-size:13.5px}
+  .matfilter button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .matdiv{font-family:"Lora",serif;color:var(--teal);font-size:20px;margin:28px 2px 2px;padding-top:14px;border-top:2px solid var(--line)}
+  /* central de estudos (hub) */
+  .hubgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:14px 0}
+  @media(max-width:640px){.hubgrid{grid-template-columns:1fr}}
+  .hubc{display:block;border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-decoration:none;color:var(--ink);background:var(--paper-2);transition:border-color .12s,transform .12s}
+  .hubc:hover{border-color:var(--blue);transform:translateY(-1px)}
+  .hubc .hn{display:inline-flex;width:24px;height:24px;align-items:center;justify-content:center;background:var(--blue);color:#fff;border-radius:50%;font-weight:800;font-size:13px;margin-bottom:6px;font-family:"Public Sans",sans-serif}
+  .hubc b{display:block;color:var(--blue);margin:2px 0 4px}
+  .hubc .d{font-size:13.5px;color:var(--ink-2)}
+  /* plano checklist */
+  .chk{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line-2)}
+  .chk input{margin-top:5px;width:16px;height:16px;accent-color:var(--green);flex:0 0 auto}
+  .chk label{cursor:pointer}
+  .chk.done label{color:var(--muted);text-decoration:line-through}
+  h4.wk{margin:22px 0 4px;color:var(--blue);font-size:.98rem;border-bottom:2px solid var(--line-2);padding-bottom:5px}
+  .callout{background:var(--paper-2);border:1px solid var(--line-2);border-left:4px solid var(--green);border-radius:12px;padding:16px 20px}
+  /* domínio por prioridade */
+  .prband{display:flex;align-items:center;gap:12px;margin:30px 0 6px}
+  .prband .tag{font-weight:800;font-size:.85rem;color:#fff;padding:4px 12px;border-radius:20px;letter-spacing:.03em}
+  .prband.p1 .tag{background:var(--p1,#c0392b)} .prband.p2 .tag{background:var(--p2,#d68910)} .prband.p3 .tag{background:var(--p3,#5d6d7e)}
+  .prband h3{margin:0;font-size:1.05rem;color:var(--ink)}
+  .prband .cnt{margin-left:auto;font-size:.82rem;color:var(--muted)}
+  .domgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  @media(max-width:760px){.domgrid{grid-template-columns:1fr}}
+  .domc{background:var(--paper-2);border:1px solid var(--line-2);border-radius:12px;padding:14px 16px}
+  .domc h4{margin:0 0 7px;color:var(--blue);font-size:1rem;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .domc h4 .mt{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+  .domc p{margin:0 0 8px;font-size:.93rem;line-height:1.5}
+  .domc .na{margin:0;font-size:.9rem;background:var(--paper);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:8px 11px}
+  .domc .na b{color:var(--green)}
+  .domc .ap{margin:0 0 8px;font-size:.92rem;line-height:1.55;background:var(--blue-soft);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:8px 11px}
+  .domc .ap b{color:var(--blue)}
+  /* painel Revise seus erros */
+  .errpanel{margin-top:16px;background:var(--paper-2);border:1px solid var(--line-2);border-left:4px solid var(--p1,#c0392b);border-radius:12px;padding:14px 18px}
+  .errpanel h4{margin:0 0 6px;color:var(--p1,#c0392b);font-size:1.05rem}
+  .errpanel>p{margin:0 0 6px;font-size:.93rem}
+  .errpanel ol{margin:8px 0 0;padding-left:22px}
+  .errpanel li{margin-bottom:13px;line-height:1.5}
+  .errpanel .eq{font-style:italic;color:var(--ink-2);margin:3px 0}
+  .errpanel .ei{background:var(--paper);border-radius:8px;padding:7px 11px;margin-top:4px;font-size:.92rem}
+  .errpanel .you{color:var(--p1,#c0392b)} .errpanel .ok{color:var(--green)}
+  .errpanel .tip{font-size:.86rem;color:var(--muted);margin:10px 0 0}
+  .errpanel a{font-weight:700;color:var(--blue)}
+  .errpanel.zero{border-left-color:var(--green)} .errpanel.zero h4{color:var(--green)}
+  /* cronômetro */
+  .timer{display:inline-flex;align-items:center;gap:8px;margin-left:auto}
+  .timer .tdisp{font-variant-numeric:tabular-nums;font-size:15px;color:var(--ink-2);white-space:nowrap;font-family:"Lora",serif}
+  .timer .tdisp.low{color:var(--red)}
+  .timer .tbtn2{padding:8px 12px;font-size:13px}
+  /* meu desempenho */
+  .desempenho .dhint{font-size:14px;color:var(--ink-2);margin:0}
+  .desempenho .dbest{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0 10px}
+  .desempenho .dlbl{font-weight:700;color:var(--ink)}
+  .desempenho .dchip{background:var(--green-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--green) 30%,var(--line));border-radius:999px;padding:4px 11px;font-size:13px}
+  .desempenho .dlast{margin:0 0 10px;padding-left:20px;font-size:14px}
+  .desempenho .dlast li{margin:3px 0}
+  .desempenho .dclear{padding:7px 12px;font-size:13px}
+  /* próxima ação (recomendação personalizada) */
+  .proxima{background:var(--green-soft);border:1px solid color-mix(in srgb,var(--green) 30%,var(--line));border-left:4px solid var(--green);border-radius:12px;padding:14px 16px;margin:2px 0 14px}
+  .proxima h4{margin:0 0 4px;color:var(--green);font-size:1rem}
+  .proxima p{margin:0 0 10px;font-size:.95rem;max-width:none}
+  .proxima .btn{padding:9px 16px;font-size:14px;text-decoration:none;display:inline-block}
+  .proxima .foco{font-size:13px;color:var(--ink-2);margin:8px 0 0}
+  .proxima[hidden]{display:none!important}
+  /* caderno de erros */
+  .dhint{font-size:14px;color:var(--ink-2)}
+  .cadtools{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px}
+  .cadtools .btn{padding:8px 13px;font-size:13.5px}
+  .cadcount{font-family:"Public Sans",sans-serif;font-size:14px;color:var(--muted);font-weight:700}
+  /* progresso do cronograma */
+  .cprog{margin:8px 0 14px}
+  .cprow{display:grid;grid-template-columns:200px 1fr auto;gap:12px;align-items:center;font-size:13.5px}
+  .cbar{height:13px;background:var(--paper-2);border:1px solid var(--line-2);border-radius:999px;overflow:hidden}
+  .cbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--teal));border-radius:999px;transition:width .3s}
+  @media(max-width:560px){.cprog .cprow{grid-template-columns:1fr;gap:3px}.cprog .cbar{grid-row:2}}
+  @media(max-width:560px){
+    .timer{margin-left:0;width:100%;justify-content:space-between;order:3}
+    .q .qt{font-size:15.5px} .opt{padding:11px 13px}
+    .card{padding:18px 15px}
+  }
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  .mini{background:var(--paper-2);border:1px solid var(--line-2);border-radius:11px;padding:14px 16px}
+  .mini h4{margin-top:0;color:var(--blue)}
+  footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;padding:24px 0;text-align:center}
+  .back{position:fixed;right:16px;bottom:16px;z-index:40;background:var(--blue);color:#fff;border:0;border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;box-shadow:var(--shadow);display:none}
+  .back.show{display:block}
+  /* login / perfis */
+  .authwall{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:24px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .authcard{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:26px 24px;max-width:390px;width:100%;margin:auto}
+  :root.authlock,:root.authlock body{overflow:hidden;height:100%}
+  .authwall[hidden]{display:none!important}
+  .authbrand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;font-family:"Lora",serif}
+  .authbrand b{color:var(--blue)}
+  .authbrand .drop{width:24px;height:24px;border-radius:50% 50% 50% 8px;transform:rotate(45deg);background:linear-gradient(135deg,var(--blue-2),var(--teal))}
+  .authsub{font-size:14px;color:var(--ink-2);margin:8px 0 16px}
+  .authcard input{width:100%;padding:11px 13px;margin:0 0 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:16px;background:var(--paper);color:var(--ink)}
+  .authcard input:focus{outline:2px solid var(--blue-2);border-color:var(--blue-2)}
+  .pwwrap{position:relative;margin:0 0 10px}
+  .pwwrap input{margin:0!important;padding-right:82px}
+  .pwtoggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--blue);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:6px 8px}
+  .authcard .btn{width:100%;margin-top:2px}
+  .authtoggle{font-size:13.5px;color:var(--ink-2);text-align:center;margin:12px 0 0}
+  .authmsg{background:var(--red-soft);color:var(--red);border-radius:8px;padding:8px 11px;font-size:13.5px;margin-bottom:10px}
+  .authnote{font-size:11.5px;color:var(--muted);margin:16px 0 0;line-height:1.5}
+  .userbox{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+  .userbox[hidden]{display:none!important}
+  .userbox #whoami{font-weight:700;color:var(--ink);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media(max-width:560px){.userbox #whoami{max-width:80px}}
+
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr;gap:0}
+    nav.toc{position:fixed;inset:54px 0 0 0;z-index:45;background:var(--paper);max-height:none;overflow-y:auto;padding:14px 18px;display:none;border-right:1px solid var(--line)}
+    nav.toc.open{display:block}
+    .menub{display:inline-block}
+    .cd{display:none}
+    /* sem desfoque (evita "tremer" ao rolar) e barra de Corrigir no fluxo (não flutua) */
+    .top{backdrop-filter:none;background:var(--paper)}
+    .simbar{position:static;backdrop-filter:none;background:var(--paper)}
+    .top .in{padding:9px 14px;gap:8px}
+    .brand{font-size:15px}
+    body.navopen{overflow:hidden}
+  }
+  @media print{
+    .top,nav.toc,.simbar,.back,.fctools,.menub,.authwall,.userbox{display:none!important}
+    html.authlock,html.authlock body{overflow:visible!important;height:auto!important}
+    .wrap{display:block;max-width:none;padding:0}
+    body{background:#fff}
+    .card,.q,.fc,.hero{box-shadow:none;break-inside:avoid}
+    .expl{display:block!important}
+    .fc .fa{display:block!important} .fc .hint{display:none}
+    a{color:inherit;text-decoration:none}
+    section{margin:16px 0}
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
+<script>
+  window.DMAE_SLUG="inss"; /* TROCAR por um id único do concurso, ex.: "prf", "pf", "emater". Mantém o progresso separado no backend compartilhado. */
+  try{ window.sb = window.supabase.createClient(
+    "https://eruszwjnekrvfbtylbuv.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVydXN6d2puZWtydmZidHlsYnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxOTM3MTksImV4cCI6MjEwNDc2OTcxOX0.XfxqmgTu9OLI6moAk6XhasQc9RmgI9w-lpbzbHSJqqo",
+    {auth:{persistSession:true,autoRefreshToken:true}}
+  ); }catch(e){ window.sb=null; }
+</script>
+</head>
+<body>
+<div id="authwall" class="authwall">
+  <div class="authcard">
+    <div class="authbrand"><span class="drop" aria-hidden="true"></span> Aprovação <b>INSS</b></div>
+    <p class="authsub">Cada pessoa tem a <strong>sua conta e o seu progresso</strong>, separados. Coloque seu e-mail e uma senha: se já tiver conta, você <strong>entra</strong>; se não tiver, ela é <strong>criada na hora</strong>.</p>
+    <div id="auth-msg" class="authmsg" hidden></div>
+    <input id="au-name" type="text" placeholder="Seu nome (opcional)" autocomplete="name">
+    <input id="au-email" type="email" placeholder="Seu e-mail" autocomplete="username" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <div class="pwwrap">
+      <input id="au-pass" type="password" placeholder="Sua senha (mín. 4 caracteres)" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false">
+      <button type="button" class="pwtoggle" id="au-eye" aria-label="Mostrar senha">Mostrar</button>
+    </div>
+    <button class="btn" id="au-btn" type="button">Entrar / Criar minha conta</button>
+    <p class="authnote">Sua conta funciona em <strong>qualquer aparelho</strong> (celular e computador): o progresso fica salvo <strong>na nuvem</strong> e é privado — ninguém vê o que você errou ou acertou. Use uma senha só para este site (não repita a do banco/e-mail).</p>
+  </div>
+</div>
+<script>
+/* ===== Autenticação Supabase (contas reais, sincroniza entre aparelhos) ===== */
+window.DMAE_KEY=function(k){var u="";try{u=localStorage.getItem("dmae:uid")||"";}catch(e){}return "dmae:u:"+u+":"+k;};
+window.DMAE_logout=function(){var done=function(){try{localStorage.removeItem("dmae:uid");}catch(e){}location.reload();};if(window.sb){window.sb.auth.signOut().then(done,done);}else{done();}};
+(function(){
+  var wall=document.getElementById("authwall");
+  function show(){if(wall){wall.hidden=false;wall.style.display="";}document.documentElement.classList.add("authlock");}
+  function hide(){if(wall){wall.hidden=true;wall.style.display="none";}document.documentElement.classList.remove("authlock");}
+  function msg(t){var m=document.getElementById("auth-msg");if(m){m.textContent=t;m.hidden=!t;}}
+  function busy(b){var x=document.getElementById("au-btn");if(x){x.disabled=b;x.textContent=b?"Entrando…":"Entrar / Criar minha conta";}}
+  show();
+  if(!window.sb){msg("Não consegui conectar ao servidor de contas. Confira sua internet e recarregue a página.");return;}
+  function onLogin(session){
+    try{localStorage.setItem("dmae:uid",session.user.id);}catch(e){}
+    var md=session.user.user_metadata||{};
+    var nome=md.name||md.nome||session.user.email;
+    var who=document.getElementById("whoami"),box=document.getElementById("userbox");
+    if(who)who.textContent=nome; if(box)box.hidden=false;
+    var lo=document.getElementById("logout"); if(lo)lo.onclick=window.DMAE_logout;
+    hide();
+    if(window.DMAE_syncPull)window.DMAE_syncPull();
+  }
+  async function go(){
+    var n=(document.getElementById("au-name").value||"").trim();
+    var e=(document.getElementById("au-email").value||"").trim().toLowerCase();
+    var pw=document.getElementById("au-pass").value||"";
+    if(!e||e.indexOf("@")<0){msg("Digite um e-mail válido.");return;}
+    if(pw.length<4){msg("A senha precisa ter pelo menos 4 caracteres.");return;}
+    msg("");busy(true);
+    try{
+      var r=await window.sb.auth.signInWithPassword({email:e,password:pw});
+      if(r.data&&r.data.session){onLogin(r.data.session);return;}
+      var su=await window.sb.auth.signUp({email:e,password:pw,options:{data:{name:(n||e.split("@")[0])}}});
+      if(su.error){
+        var t=(su.error.message||"").toLowerCase();
+        if(t.indexOf("already")>=0||t.indexOf("registered")>=0){msg("Essa conta já existe, mas a senha não confere. Tente a senha correta.");}
+        else{msg("Não foi possível entrar: "+su.error.message);}
+        busy(false);return;
+      }
+      if(su.data&&su.data.session){onLogin(su.data.session);return;}
+      msg("Conta criada — confirme pelo link no seu e-mail para entrar.");busy(false);
+    }catch(err){msg("Erro de conexão. Tente novamente.");busy(false);}
+  }
+  var b=document.getElementById("au-btn"); if(b)b.onclick=go;
+  ["au-email","au-pass","au-name"].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener("keydown",function(ev){if(ev.key==="Enter")go();});});
+  var eye=document.getElementById("au-eye"),pwf=document.getElementById("au-pass");
+  if(eye&&pwf)eye.onclick=function(){var s=pwf.type==="password";pwf.type=s?"text":"password";eye.textContent=s?"Ocultar":"Mostrar";pwf.focus();};
+  window.sb.auth.getSession().then(function(r){if(r.data&&r.data.session)onLogin(r.data.session);});
+})();
+</script>
+<header class="top">
+  <div class="in">
+    <button class="tbtn menub" id="menub" aria-label="Menu">☰</button>
+    <span class="brand"><span class="drop" aria-hidden="true"></span> Aprovação <b>INSS</b></span>
+    <span class="sp"></span>
+    <span class="cd" id="cd">Próximo concurso · <b id="cddays">—</b></span>
+    <span class="userbox" id="userbox" hidden><span id="whoami"></span><button class="tbtn" id="logout" type="button">Sair</button></span>
+    <button class="tbtn" id="theme" aria-label="Alternar tema">◐</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" id="toc" aria-label="Índice">
+    <div class="grp">Comece aqui</div>
+    <a href="#inicio">Início</a>
+    <a href="#hub">Central de estudos</a>
+    <a href="#plano">Plano de estudos</a>
+    <a href="#memoria">Como fixar na memória</a>
+    <div class="grp">1 · Aprender + treinar</div>
+    <a href="#dominio">Domínio por prioridade</a>
+    <a href="#treinos-sec">Aulas + treinos por tema</a>
+    <div class="grp">2 · Praticar</div>
+    <a href="#antes-sim">Antes de cada simulado</a>
+    <a href="#simulado">Simulado 1</a>
+    <a href="#simulado2">Simulado 2</a>
+    <a href="#simulado3">Simulado 3</a>
+    <a href="#simulado4">Simulado 4</a>
+    <a href="#aleatorio">Simulado aleatório</a>
+    <a href="#especifico">Só Previdenciário</a>
+    <div class="grp">3 · Revisar</div>
+    <a href="#caderno">Caderno de erros</a>
+    <a href="#flashcards">Flashcards</a>
+    <a href="#vespera">Revisão de véspera</a>
+    <div class="grp">4 · Consultar</div>
+    <a href="#ficha">Ficha do edital</a>
+    <a href="#portugues">O que estudar (verticalizado)</a>
+    <a href="#mudou">Mudanças 2019→2026</a>
+    <a href="#correcoes">Correções</a>
+    <a href="#perfil">Perfil da banca</a>
+    <a href="#fontes">Fontes oficiais</a>
+    <a href="#claude">Tutor no Claude Code</a>
+  </nav>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section id="inicio" class="hero">
+      <p class="eyebrow">Concurso INSS · Técnico do Seguro Social · Banca Cebraspe (Cespe) · Nível Médio</p>
+      <h1>Seu cursinho completo para <em>Técnico do Seguro Social</em> do INSS</h1>
+      <p class="sub">Do zero ao dia da prova: edital verticalizado com as pegadinhas, aulas que ensinam passo a passo, simulados no formato <b>Certo/Errado</b> da Cebraspe, caderno de erros e plano de estudos com horas por dia. O que mais decide é o <b>Direito Previdenciário e a Seguridade Social</b> — e é aqui que você vai dominar.</p>
+      <div class="facts">
+        <div class="fact"><b>Certo/Errado</b> · banca Cebraspe</div>
+        <div class="fact"><b>errada anula certa</b></div>
+        <div class="fact"><b>Nível Médio</b> completo</div>
+        <div class="fact"><b>Foco</b> Previdenciário + Seguridade</div>
+        <div class="fact"><b>~R$ 5.905</b> inicial (ref. 2022)</div>
+      </div>
+      <a class="btn" href="#hub" style="margin-top:20px;display:inline-block;text-decoration:none">Começar a estudar agora →</a>
+</section>
+
+    <div class="alert red" style="margin-top:16px">
+      <span class="tag">O jeito Cebraspe</span> — a prova é <b>Certo ou Errado</b>, e <b>cada item errado ANULA um item certo</b>. Chutar no escuro derruba sua nota. Aqui você treina a <b>decidir só quando tem certeza</b> e a reconhecer a pegadinha.
+    </div>
+    <div class="alert amber">
+      <span class="tag">Datas</span> — O edital do próximo concurso ainda não saiu. Este cursinho foi montado pelo <b>último edital (INSS 2022, Cebraspe)</b> e será ajustado quando o novo sair. O <b>Direito Previdenciário / Seguridade Social</b> é a parte que <b>mais pesa</b>.
+    </div>
+
+    <!-- ============ CENTRAL DE ESTUDOS (HUB) ============ -->
+    <section id="hub">
+      <div class="card">
+        <p class="eyebrow">Central de estudos</p>
+        <h2 class="sec">Por onde começar</h2>
+        <div id="proxima" class="proxima"></div>
+        <p>Siga a trilha na ordem — aprender → praticar → revisar. Está tudo aqui dentro; você não precisa pesquisar fora.</p>
+        <div class="hubgrid">
+          <a class="hubc" href="#dominio"><span class="hn">1</span><b>Aprender + treinar</b><span class="d">Domínio por prioridade (o que mais cai) e aulas por tema, cada uma ensinando do zero: Aprenda → Entenda → Na prova.</span></a>
+          <a class="hubc" href="#simulado"><span class="hn">2</span><b>Praticar</b><span class="d">Treinos e simulados no formato Certo/Errado da Cebraspe, com o porquê de cada item e o caderno de erros.</span></a>
+          <a class="hubc" href="#flashcards"><span class="hn">3</span><b>Revisar</b><span class="d">Flashcards + plano de estudos com horas por dia até a prova (progresso salvo na sua conta).</span></a>
+          <a class="hubc" href="#ficha"><span class="hn">4</span><b>Consultar</b><span class="d">Ficha do concurso, edital verticalizado por bloco, perfil da banca e fontes oficiais.</span></a>
+        </div>
+        <div class="alert blue"><span class="tag">Prioridade</span> — o que mais decide no INSS é o bloco de <b>Conhecimentos Específicos</b>: <b>Direito Previdenciário e Seguridade Social</b> (segurados, dependentes, carência, benefícios, custeio). Depois vêm <b>Português, Raciocínio Lógico, Direito Constitucional e Administrativo, Ética e Informática</b>. Ataque primeiro os temas marcados <b>P1</b>.</div>
+        <h3 style="margin:18px 0 8px">Meu desempenho</h3>
+        <div id="desempenho" class="desempenho"></div>
+      </div>
+</section>
+
+    <!-- ============ 1. FICHA ============ -->
+    <section id="ficha">
+      <div class="card">
+        <p class="eyebrow">Seção 1</p>
+        <h2 class="sec">Ficha técnica do concurso</h2>
+        <div class="tw"><table><tbody>
+          <tr><td class="k">Órgão</td><td>INSS — Instituto Nacional do Seguro Social (autarquia federal, vinculada ao Ministério da Previdência Social). Atende o público no reconhecimento e na manutenção de benefícios.</td></tr>
+          <tr><td class="k">Banca</td><td><strong>Cebraspe (Cespe/UnB)</strong> — cebraspe.org.br (banca do último concurso, 2022)</td></tr>
+          <tr><td class="k">Cargo</td><td><strong>Técnico do Seguro Social</strong> — <strong>Nível Médio</strong> (Ensino Médio completo).</td></tr>
+          <tr><td class="k">Remuneração</td><td>~ R$ 5.905 inicial (referência 2022), jornada de 40h — um dos melhores salários de nível médio no serviço público federal.</td></tr>
+          <tr><td class="k">Prova objetiva</td><td><strong>Itens Certo/Errado</strong> (Cebraspe), com <strong>Conhecimentos Básicos</strong> e <strong>Conhecimentos Específicos</strong>. Os Específicos (Direito Previdenciário/Seguridade Social) são o maior peso. Nº de itens e pesos saem no edital.</td></tr>
+          <tr><td class="k">Correção (Cebraspe)</td><td><strong>Cada item errado anula um item certo</strong> (nota = certos − errados por bloco). Só marque com segurança; chute cego prejudica.</td></tr>
+          <tr><td class="k">Demais fases</td><td>Em geral, prova objetiva (eliminatória e classificatória) e, conforme o edital, prova de títulos e/ou curso de formação.</td></tr>
+          <tr><td class="k">Legislação-chave</td><td>CF (arts. 194 a 204 — Seguridade Social); <strong>Lei 8.212/1991</strong> (custeio), <strong>Lei 8.213/1991</strong> (benefícios), <strong>Decreto 3.048/1999</strong> (regulamento); Lei 8.112/90 e Dec. 1.171/94 (ética); atualizações recentes (reforma da previdência, EC 103/2019).</td></tr>
+        </tbody></table></div>
+
+        <h3 id="dist">1.1 Os grandes blocos e o peso</h3>
+        <div class="weights">
+          <div class="wrow"><span>Conhecimentos Específicos (Previdenciário + Seguridade)</span><span class="bar"><i style="width:100%"></i></span><span>o que mais pesa</span></div>
+          <div class="wrow"><span>Língua Portuguesa + Raciocínio Lógico</span><span class="bar"><i style="width:65%"></i></span><span>base forte</span></div>
+          <div class="wrow"><span>Const. + Administrativo + Ética + Informática</span><span class="bar"><i style="width:55%"></i></span><span>cai sempre</span></div>
+        </div>
+        <p class="peg"><strong>Estratégia:</strong> o <strong>Direito Previdenciário e a Seguridade Social</strong> são o coração da prova (segurados, dependentes, carência, benefícios, custeio). Priorize esse bloco junto com Português e Raciocínio Lógico.</p>
+      </div>
+</section>
+
+    <!-- ============ 2. MUDOU ============ -->
+    <section id="mudou">
+      <div class="card">
+        <p class="eyebrow">Seção 2</p>
+        <h2 class="sec">O que muda para o próximo edital</h2>
+        <p>O próximo edital ainda não saiu. O que dá para prever pelo histórico:</p>
+        <ul>
+          <li>A banca deve seguir o modelo <strong>Cebraspe / Certo-Errado</strong> — então estude já nesse estilo.</li>
+          <li>A base de matérias tende a se manter: Português, Raciocínio Lógico, Ética, Noções de Direito Constitucional e Administrativo, Informática e, sobretudo, <strong>Direito Previdenciário / Seguridade Social</strong>.</li>
+          <li>Fique atento às <strong>atualizações da legislação previdenciária</strong> (EC 103/2019 — Reforma da Previdência, e mudanças em regras de aposentadoria e benefícios).</li>
+        </ul>
+        <p class="peg">Estude pelo <strong>edital de 2022</strong> agora; quando o novo sair, ajustamos os detalhes (em especial regras de benefícios).</p>
+      </div>
+</section>
+
+    <!-- ============ 3. CORREÇÕES ============ -->
+    <section id="correcoes">
+      <div class="card">
+        <p class="eyebrow">Seção 3</p>
+        <h2 class="sec">Erros comuns de quem estuda por material antigo</h2>
+        <div class="tw"><table>
+          <thead><tr><th>Material antigo diz</th><th>O certo hoje</th></tr></thead>
+          <tbody>
+          <tr><td>Aposentadoria por tempo de contribuição “pura”</td><td>Foi <strong>extinta pela EC 103/2019</strong> (Reforma da Previdência); há regras de transição</td></tr>
+          <tr><td>“Auxílio-doença”</td><td>Hoje é <strong>auxílio por incapacidade temporária</strong> (mudou o nome)</td></tr>
+          <tr><td>A prova é de múltipla escolha (A–E)</td><td><strong>É Certo/Errado</strong>, e errada anula certa</td></tr>
+          <tr><td>Chutar não custa nada</td><td>No Cebraspe, <strong>cada erro anula um acerto</strong> — chute cego derruba a nota</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+</section>
+
+    <!-- ============ 4. PERFIL ============ -->
+    <section id="perfil">
+      <div class="card">
+        <p class="eyebrow">Seção 4</p>
+        <h2 class="sec">Como a Cebraspe cobra (perfil da banca)</h2>
+        <ul>
+          <li><strong>Itens Certo/Errado</strong> — e <strong>errado anula certo</strong>. Marque só com segurança; na dúvida real, deixe em branco.</li>
+          <li>Cobra a <strong>letra da lei</strong> (Leis 8.212/91, 8.213/91, Decreto 3.048/99, CF) e <strong>interpretação fina</strong> de texto.</li>
+          <li>Pegadinhas clássicas: <strong>palavra absoluta</strong> (sempre/somente), <strong>troca de um dado</strong> (prazo, número, órgão), <strong>generalizar</strong> o que tem exceção, e <strong>reescrita</strong> que muda o sentido.</li>
+          <li>Itens longos: uma parte certa + uma errada = item <strong>errado</strong>. Leia até o fim.</li>
+          <li>Recurso só com <strong>fundamentação</strong> (letra da lei/jurisprudência).</li>
+        </ul>
+      </div>
+</section>
+
+    <!-- ============ 5. VERTICALIZADO ============ -->
+    <section>
+      <p class="eyebrow" style="margin-left:2px">Seção 5 · Edital verticalizado (por bloco)</p>
+      <h2 class="sec" style="margin-left:2px">O que estudar em cada item — com a pegadinha</h2>
+      <p style="margin-left:2px">Prioridade: <span class="pri p1">P1</span> cai com certeza e pesa · <span class="pri p2">P2</span> cai com frequência · <span class="pri p3">P3</span> cai pouco. <em style="color:var(--muted)">(projetado pelo último edital — INSS 2022, Cebraspe)</em></p>
+      <div class="alert blue" style="margin-left:2px">
+        <span class="tag">Como definimos as prioridades — pelo último edital, não achismo</span>
+        <p style="margin:6px 0 4px">O edital do próximo concurso ainda não saiu. As marcações P1/P2/P3 seguem o <b>último concurso (INSS 2022, banca Cebraspe)</b>:</p>
+        <ul style="margin:0">
+          <li><b>Estrutura da objetiva:</b> itens <b>Certo/Errado</b> em dois grandes grupos — <b>Conhecimentos Básicos</b> (Língua Portuguesa, Raciocínio Lógico, Ética no serviço público, Noções de Direito Constitucional e Administrativo, Noções de Informática) e <b>Conhecimentos Específicos</b> (Direito Previdenciário e Seguridade Social). <b>Cada item errado anula um item certo.</b></li>
+          <li><b>O que mais pesa:</b> os <b>Conhecimentos Específicos</b> (segurados, dependentes, carência, benefícios, custeio) são a prioridade nº 1. Depois, <b>Português e Raciocínio Lógico</b>, que aparecem sempre.</li>
+          <li><b>Perfil da banca Cebraspe:</b> itens Certo/Errado com muitas <b>pegadinhas de troca</b> (prazo/valor invertido, “sempre/somente/nunca”) e cobrança da <b>letra da lei</b> (Leis 8.212/91 e 8.213/91, Decreto 3.048/99, CF arts. 194–204).</li>
+        </ul>
+        <p class="peg" style="margin:8px 0 0;font-size:13px">Fontes: edital e provas do INSS 2022 (Cebraspe) e a legislação previdenciária oficial. Quando o novo edital sair, tudo será reajustado.</p>
+      </div>
+    </section>
+
+    <section id="portugues">
+      <div class="card">
+        <p class="eyebrow">Seção 5 · Edital verticalizado</p>
+        <h2 class="sec">Conhecimentos básicos — Português, Raciocínio Lógico e Informática</h2>
+        <p style="margin-left:2px">Prioridade: <span class="pri p1">P1</span> cai com certeza e pesa · <span class="pri p2">P2</span> cai com frequência · <span class="pri p3">P3</span> cai pouco.</p>
+        <div class="tw"><table>
+          <thead><tr><th>Matéria</th><th>Pri.</th><th>O que cai</th><th>Pegadinha</th></tr></thead>
+          <tbody>
+          <tr><td class="k">Língua Portuguesa</td><td><span class="pri p1">P1</span></td><td>Interpretação; tipologia textual; coesão/coerência; crase; concordância e regência; pontuação; <strong>reescrita mantendo o sentido</strong>.</td><td class="peg">A reescrita muda o sentido (troca causa por concessão) mas parece igual.</td></tr>
+          <tr><td class="k">Raciocínio Lógico</td><td><span class="pri p1">P1</span></td><td>Proposições; valores lógicos; sentenças abertas; <strong>tabelas-verdade</strong> (2ⁿ linhas); conectivos; negações; equivalências; argumentos.</td><td class="peg">Negar “se p então q” com “se não p então não q” (o certo é “p e não q”).</td></tr>
+          <tr><td class="k">Noções de Informática</td><td><span class="pri p2">P2</span></td><td>Windows/Word/Excel; internet e navegadores; <strong>segurança da informação</strong> (malware, phishing, backup); noções de rede.</td><td class="peg">Trocar tipos de malware (vírus × worm × trojan); confundir backup incremental × diferencial.</td></tr>
+          </tbody>
+        </table></div>
+        <p class="peg"><strong>Estratégia:</strong> Português e RLM são a base — treine questões todo dia. Informática rende rápido com foco em segurança e pacote Office.</p>
+      </div>
+</section>
+
+    <section id="matematica">
+      <div class="card">
+        <p class="eyebrow">Seção 5 · como a banca cobra</p>
+        <h2 class="sec">A regra de ouro do Certo/Errado</h2>
+        <p>Na Cebraspe, <strong>cada item é uma afirmação</strong> que você julga <strong>Certo</strong> ou <strong>Errado</strong>. E o mais importante: <strong>um item errado ANULA um item certo</strong> no mesmo bloco. Ou seja, chutar no escuro pode zerar o que você acertou.</p>
+        <ul>
+          <li><strong>Só marque quando tiver segurança.</strong> Na dúvida real entre C e E, muitas vezes é melhor <strong>deixar em branco</strong> (não anula nada).</li>
+          <li><strong>Palavras absolutas</strong> (sempre, nunca, somente, apenas, todo, exclusivamente) geralmente deixam o item <strong>ERRADO</strong> — a lei quase sempre tem exceção.</li>
+          <li><strong>Uma palavra trocada</strong> torna tudo errado: número, prazo, órgão, "poderá" × "deverá", "crime" × "infração".</li>
+          <li>Leia o item <strong>inteiro</strong>: a Cebraspe põe uma verdade no começo e um erro no fim.</li>
+        </ul>
+        <p class="peg">Treine isso nos simulados desta página: cada questão é Certo/Errado, com o porquê explicado embaixo.</p>
+      </div>
+</section>
+
+    <section id="gerais">
+      <div class="card">
+        <h2 class="sec">Conhecimentos básicos — Ética, Direito Constitucional e Administrativo</h2>
+        <div class="tw"><table>
+          <thead><tr><th>Matéria</th><th>Pri.</th><th>O que cai</th><th>Pegadinha</th></tr></thead>
+          <tbody>
+          <tr><td class="k">Ética no serviço público</td><td><span class="pri p2">P2</span></td><td>Moral × ética; conduta do servidor; <strong>Código de Ética (Dec. 1.171/94)</strong>; deveres e vedações; conflito de interesses.</td><td class="peg">Confundir legalidade com moralidade; achar que “ético” = “legal”.</td></tr>
+          <tr><td class="k">Direito Constitucional</td><td><span class="pri p1">P1</span></td><td>Princípios; <strong>direitos e garantias (art. 5º)</strong>; direitos sociais (art. 6º); <strong>Ordem Social e Seguridade Social (arts. 193–204)</strong>; organização do Estado.</td><td class="peg">Direito fundamental “absoluto” — quase nenhum é; há limites e exceções.</td></tr>
+          <tr><td class="k">Direito Administrativo</td><td><span class="pri p1">P1</span></td><td>Princípios (LIMPE); atos administrativos; poderes; <strong>agentes e servidores (Lei 8.112/90)</strong>; improbidade.</td><td class="peg">Ato vinculado × discricionário; anulação × revogação.</td></tr>
+          </tbody>
+        </table></div>
+        <p class="peg"><strong>Dica:</strong> o art. 194 da CF (Seguridade Social) é a ponte entre o Constitucional e os Específicos — estude junto.</p>
+      </div>
+</section>
+
+    <section id="legislacao">
+      <div class="card">
+        <h2 class="sec">Conhecimentos específicos — Seguridade Social, segurados e dependentes <span style="color:var(--muted);font-family:Public Sans;font-size:14px">(o que mais pesa)</span></h2>
+        <p>Base: <strong>CF (arts. 194–204)</strong>, <strong>Lei 8.212/1991</strong> (custeio), <strong>Lei 8.213/1991</strong> (benefícios) e <strong>Decreto 3.048/1999</strong> (regulamento). Cobrança <strong>literal</strong> — quem domina a letra da lei gabarita.</p>
+        <div class="tw"><table>
+          <thead><tr><th>Tema</th><th>Pri.</th><th>O que dominar</th><th>Pegadinha</th></tr></thead>
+          <tbody>
+          <tr><td class="k">Seguridade Social (conceito e princípios)</td><td><span class="pri p1">P1</span></td><td>Tripé: <strong>Saúde + Previdência + Assistência Social</strong> (art. 194). Princípios: universalidade, uniformidade, seletividade, distributividade, irredutibilidade, diversidade da base de financiamento.</td><td class="peg">Saúde e Assistência independem de contribuição; a <strong>Previdência é contributiva</strong>.</td></tr>
+          <tr><td class="k">Segurados</td><td><span class="pri p1">P1</span></td><td><strong>Obrigatórios:</strong> empregado, empregado doméstico, trabalhador avulso, contribuinte individual, segurado especial. <strong>Facultativo:</strong> quem não exerce atividade remunerada (ex.: dona de casa, estudante) e contribui por opção.</td><td class="peg">Confundir contribuinte individual com facultativo; menor de 16 (salvo aprendiz a partir de 14) não é segurado.</td></tr>
+          <tr><td class="k">Dependentes</td><td><span class="pri p1">P1</span></td><td>Classe I: cônjuge/companheiro(a) e filho menor de 21 ou inválido (presunção de dependência). Classe II: pais. Classe III: irmão menor de 21 ou inválido. <strong>Classe I exclui as demais.</strong></td><td class="peg">Existindo dependente de classe superior, os das inferiores não recebem.</td></tr>
+          <tr><td class="k">Carência</td><td><span class="pri p1">P1</span></td><td>Nº mínimo de contribuições mensais. Ex.: aposentadorias 180; salário-maternidade (contribuinte individual/facultativa) 10; <strong>sem carência:</strong> pensão por morte, salário-família, auxílio por acidente, e incapacidade por acidente.</td><td class="peg">Trocar os números de carência; achar que pensão por morte exige carência (não exige).</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+</section>
+
+    <section id="especificos">
+      <div class="card">
+        <h2 class="sec">Conhecimentos específicos — Benefícios e Custeio <span style="color:var(--muted);font-family:Public Sans;font-size:14px">(decide a prova)</span></h2>
+        <div class="tw"><table>
+          <thead><tr><th>Tema</th><th>Pri.</th><th>O que dominar</th><th>Pegadinha</th></tr></thead>
+          <tbody>
+          <tr><td class="k">Benefícios — aposentadorias</td><td><span class="pri p1">P1</span></td><td>Após a <strong>EC 103/2019</strong>: aposentadoria por idade e por incapacidade permanente; regras de transição. A aposentadoria “por tempo de contribuição” pura foi <strong>extinta</strong>.</td><td class="peg">Usar as regras antigas (tempo de contribuição puro) — mudou com a Reforma.</td></tr>
+          <tr><td class="k">Benefícios — auxílios e outros</td><td><span class="pri p1">P1</span></td><td><strong>Auxílio por incapacidade temporária</strong> (antigo auxílio-doença), auxílio-acidente, salário-maternidade, salário-família, pensão por morte, reclusão.</td><td class="peg">“Auxílio-doença” virou “auxílio por incapacidade temporária”; salário-família só para baixa renda.</td></tr>
+          <tr><td class="k">Assistência Social (BPC/LOAS)</td><td><span class="pri p2">P2</span></td><td>Benefício de Prestação Continuada (1 salário mínimo) ao idoso (65+) ou à pessoa com deficiência em situação de miséria — <strong>independe de contribuição</strong> (é assistência, não previdência).</td><td class="peg">Achar que o BPC exige contribuição — não exige (é assistencial).</td></tr>
+          <tr><td class="k">Custeio (Lei 8.212/91)</td><td><span class="pri p2">P2</span></td><td>Financiamento da seguridade: contribuições sociais (empresas, trabalhadores, sobre a receita/lucro), orçamento. Salário de contribuição; alíquotas.</td><td class="peg">Confundir salário de contribuição com salário de benefício.</td></tr>
+          </tbody>
+        </table></div>
+        <p class="peg"><strong>Como estudar:</strong> monte tabelas de <strong>segurados × dependentes × carência × benefícios</strong> e refaça de memória. É o que mais cai e o que decide a vaga.</p>
+      </div>
+</section>
+
+    <!-- ============ 6. PLANO ============ -->
+    <section id="plano">
+      <p class="eyebrow">Seção 6</p>
+      <h2 class="sec">Plano de estudos — 8 semanas + reta final (com horas por dia)</h2>
+      <div class="alert amber"><span class="tag">Sem data ainda</span> — o edital do próximo INSS <b>ainda não saiu</b>. Este é um <b>ciclo de 8 semanas</b> para você começar HOJE pelo <b>Direito Previdenciário</b> (o que mais pesa) e chegar pronto. Quando o edital sair, encaixe o ciclo na data.</div>
+      <p>Ritmo recomendado: <strong>~2 h nos dias úteis</strong> (19h–21h) e <strong>~3 h no sábado</strong> (simulado). Pouco tempo? Corte P3 antes — <strong>nunca corte o Previdenciário nem os P1</strong>.</p>
+
+      <h3>Ciclo semanal (horas por matéria — o Previdenciário pesa mais)</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Matéria</th><th>Horas/sem.</th><th>Por quê</th></tr></thead>
+        <tbody>
+        <tr><td class="k">Direito Previdenciário / Seguridade</td><td>6 h</td><td><strong>O bloco que mais pesa</strong> — segurados, dependentes, carência, benefícios, custeio.</td></tr>
+        <tr><td class="k">Língua Portuguesa</td><td>3 h30</td><td>Base de tudo; evolui com questões comentadas.</td></tr>
+        <tr><td class="k">Raciocínio Lógico</td><td>3 h</td><td>Cai sempre; treino resolve.</td></tr>
+        <tr><td class="k">Const. + Adm. + Ética + Informática</td><td>3 h</td><td>Conhecimentos básicos — rendem rápido.</td></tr>
+        <tr><td class="k">Simulado + correção</td><td>3 h30</td><td>Todo sábado, cronometrado, formato Certo/Errado.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Rotina diária (para quem trabalha)</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Quando</th><th>O quê</th><th>Tempo</th></tr></thead>
+        <tbody>
+        <tr><td class="k">Ao acordar</td><td>Flashcards do dia anterior (revisão espaçada)</td><td>20 min</td></tr>
+        <tr><td class="k">19h00 · bloco 1</td><td>Direito Previdenciário (teoria + tabela própria)</td><td>50 min</td></tr>
+        <tr><td class="k">20h00 · bloco 2</td><td>Itens Certo/Errado da mesma matéria (mín. 15) + caderno de erros</td><td>50 min</td></tr>
+        <tr><td class="k">21h00 · bloco 3</td><td>Português ou RLM (aula + questões)</td><td>40 min</td></tr>
+        <tr><td class="k">Antes de dormir</td><td>Reler as anotações do dia (só reler)</td><td>10 min</td></tr>
+        </tbody>
+      </table></div>
+      <p class="peg">A matéria difícil vai no <strong>1º bloco após um descanso</strong> (pico de atenção). <strong>Dormir 7–8 h vale mais que 1 h extra à meia-noite.</strong></p>
+
+      <h3>Cronograma por fases (marque conforme avança — fica salvo na sua conta)</h3>
+      <div id="plano-list">
+        <div class="chk"><input type="checkbox" id="f0"><label for="f0"><b>Fase 0 — Preparação:</b> baixe o último edital (INSS 2022) e a legislação (CF arts. 194–204, Leis 8.212/91 e 8.213/91, Decreto 3.048/99). Faça o <a href="#simulado">simulado diagnóstico</a>.</label></div>
+        <div class="chk"><input type="checkbox" id="f1"><label for="f1"><b>Fase 1 — Seguridade e segurados:</b> conceito e princípios da seguridade (art. 194–195); segurados obrigatórios e facultativo; filiação e inscrição.</label></div>
+        <div class="chk"><input type="checkbox" id="f2"><label for="f2"><b>Fase 2 — Dependentes, carência e qualidade de segurado:</b> classes de dependentes; carência (quem exige, quem não exige); período de graça; manutenção/perda da qualidade.</label></div>
+        <div class="chk"><input type="checkbox" id="f3"><label for="f3"><b>Fase 3 — Benefícios:</b> aposentadorias (pós EC 103/2019), auxílios (incapacidade temporária, acidente), salário-maternidade, salário-família, pensão por morte.</label></div>
+        <div class="chk"><input type="checkbox" id="f4"><label for="f4"><b>Fase 4 — Assistência (BPC) e custeio:</b> BPC/LOAS; financiamento da seguridade (Lei 8.212/91); salário de contribuição e alíquotas.</label></div>
+        <div class="chk"><input type="checkbox" id="f5"><label for="f5"><b>Fase 5 — Português + Raciocínio Lógico:</b> interpretação, crase, concordância, pontuação; proposições, negações, equivalências e tabela-verdade.</label></div>
+        <div class="chk"><input type="checkbox" id="f6"><label for="f6"><b>Fase 6 — Constitucional, Administrativo, Ética e Informática:</b> art. 5º/6º e seguridade; LIMPE e atos; Dec. 1.171/94; segurança da informação e Office.</label></div>
+        <div class="chk"><input type="checkbox" id="f7"><label for="f7"><b>Fase 7 — Revisão + simulados:</b> refaça o caderno de erros por matéria; 2ª leitura das tabelas de benefícios; simulados completos cronometrados no formato Cebraspe.</label></div>
+      </div>
+
+      <h3 style="margin-top:34px">Plano dia a dia com horários (ciclo de 8 semanas)</h3>
+      <p>Cada dia já tem o que estudar e em que horário. Marque conforme faz; o progresso fica salvo. <strong>Nunca pule o simulado de sábado.</strong></p>
+      <div id="crono-prog" class="cprog"></div>
+      <div id="diario-list">
+        <h4 class="wk">Semana 1 — Seguridade e segurados</h4>
+        <div class="chk"><input type="checkbox" id="pd1"><label for="pd1"><b>Seg · 19h–21h:</b> Seguridade: conceito e princípios (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd2"><label for="pd2"><b>Ter · 19h–21h:</b> Segurados obrigatórios × facultativo (15 itens C/E).</label></div>
+        <div class="chk"><input type="checkbox" id="pd3"><label for="pd3"><b>Qua · 19h–21h:</b> Português — interpretação (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd4"><label for="pd4"><b>Qui · 19h–21h:</b> Filiação, inscrição e qualidade de segurado.</label></div>
+        <div class="chk"><input type="checkbox" id="pd5"><label for="pd5"><b>Sex · 19h–21h:</b> RLM — proposições e negações (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd6"><label for="pd6"><b>Sáb · 08h30 (3 h):</b> Simulado 1 (C/E) cronometrado + caderno de erros.</label></div>
+        <div class="chk"><input type="checkbox" id="pd7"><label for="pd7"><b>Dom · 09h revisão leve:</b> Revisão dos erros + 10 flashcards. Descanso.</label></div>
+        <h4 class="wk">Semana 2 — Dependentes e carência</h4>
+        <div class="chk"><input type="checkbox" id="pd8"><label for="pd8"><b>Seg · 19h–21h:</b> Dependentes: classes I, II, III (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd9"><label for="pd9"><b>Ter · 19h–21h:</b> Carência: quem exige e quem não exige (15 itens).</label></div>
+        <div class="chk"><input type="checkbox" id="pd10"><label for="pd10"><b>Qua · 19h–21h:</b> Português — crase e concordância (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd11"><label for="pd11"><b>Qui · 19h–21h:</b> Período de graça; perda da qualidade de segurado.</label></div>
+        <div class="chk"><input type="checkbox" id="pd12"><label for="pd12"><b>Sex · 19h–21h:</b> RLM — equivalências e tabela-verdade (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd13"><label for="pd13"><b>Sáb · 08h30 (3 h):</b> Simulado 2 (C/E) cronometrado + correção.</label></div>
+        <div class="chk"><input type="checkbox" id="pd14"><label for="pd14"><b>Dom · 09h revisão leve:</b> Revisão: reescrever as tabelas de memória. Descanso.</label></div>
+        <h4 class="wk">Semana 3 — Benefícios (parte 1)</h4>
+        <div class="chk"><input type="checkbox" id="pd15"><label for="pd15"><b>Seg · 19h–21h:</b> Aposentadorias pós EC 103/2019 (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd16"><label for="pd16"><b>Ter · 19h–21h:</b> Auxílio por incapacidade temporária e acidente (15 itens).</label></div>
+        <div class="chk"><input type="checkbox" id="pd17"><label for="pd17"><b>Qua · 19h–21h:</b> Português — pontuação e regência.</label></div>
+        <div class="chk"><input type="checkbox" id="pd18"><label for="pd18"><b>Qui · 19h–21h:</b> Salário-maternidade e salário-família.</label></div>
+        <div class="chk"><input type="checkbox" id="pd19"><label for="pd19"><b>Sex · 19h–21h:</b> Informática — segurança (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd20"><label for="pd20"><b>Sáb · 08h30 (3 h):</b> Simulado 3 (C/E) cronometrado + correção.</label></div>
+        <div class="chk"><input type="checkbox" id="pd21"><label for="pd21"><b>Dom · 09h revisão leve:</b> Revisão: refazer erros de benefícios. Descanso.</label></div>
+        <h4 class="wk">Semana 4 — Benefícios (parte 2) + Assistência</h4>
+        <div class="chk"><input type="checkbox" id="pd22"><label for="pd22"><b>Seg · 19h–21h:</b> Pensão por morte e auxílio-reclusão (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd23"><label for="pd23"><b>Ter · 19h–21h:</b> BPC/LOAS: requisitos (10 itens).</label></div>
+        <div class="chk"><input type="checkbox" id="pd24"><label for="pd24"><b>Qua · 19h–21h:</b> Constitucional — seguridade (arts. 194–204) (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd25"><label for="pd25"><b>Qui · 19h–21h:</b> Revisão geral de benefícios (tabela).</label></div>
+        <div class="chk"><input type="checkbox" id="pd26"><label for="pd26"><b>Sex · 19h–21h:</b> RLM — refazer treinos.</label></div>
+        <div class="chk"><input type="checkbox" id="pd27"><label for="pd27"><b>Sáb · 08h30 (3 h):</b> Simulado 4 (C/E) cronometrado + correção.</label></div>
+        <div class="chk"><input type="checkbox" id="pd28"><label for="pd28"><b>Dom · 09h revisão leve:</b> Revisão: BPC × previdência. Descanso.</label></div>
+        <h4 class="wk">Semana 5 — Custeio + Constitucional</h4>
+        <div class="chk"><input type="checkbox" id="pd29"><label for="pd29"><b>Seg · 19h–21h:</b> Custeio (Lei 8.212/91): contribuições e bases (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd30"><label for="pd30"><b>Ter · 19h–21h:</b> Salário de contribuição × salário de benefício (10 itens).</label></div>
+        <div class="chk"><input type="checkbox" id="pd31"><label for="pd31"><b>Qua · 19h–21h:</b> Constitucional — direitos fundamentais e organização.</label></div>
+        <div class="chk"><input type="checkbox" id="pd32"><label for="pd32"><b>Qui · 19h–21h:</b> Administrativo — LIMPE e atos (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd33"><label for="pd33"><b>Sex · 19h–21h:</b> Português — revisão dos campeões.</label></div>
+        <div class="chk"><input type="checkbox" id="pd34"><label for="pd34"><b>Sáb · 08h30 (3 h):</b> Refazer o Simulado 1 (comparar a nota).</label></div>
+        <div class="chk"><input type="checkbox" id="pd35"><label for="pd35"><b>Dom · 09h revisão leve:</b> Revisão + flashcards. Descanso.</label></div>
+        <h4 class="wk">Semana 6 — Básicos completos</h4>
+        <div class="chk"><input type="checkbox" id="pd36"><label for="pd36"><b>Seg · 19h–21h:</b> Ética no serviço público (Dec. 1.171/94) (aula+treino).</label></div>
+        <div class="chk"><input type="checkbox" id="pd37"><label for="pd37"><b>Ter · 19h–21h:</b> Informática — Office e internet (10 itens).</label></div>
+        <div class="chk"><input type="checkbox" id="pd38"><label for="pd38"><b>Qua · 19h–21h:</b> Administrativo — poderes e improbidade.</label></div>
+        <div class="chk"><input type="checkbox" id="pd39"><label for="pd39"><b>Qui · 19h–21h:</b> RLM — refazer negações e tabela-verdade.</label></div>
+        <div class="chk"><input type="checkbox" id="pd40"><label for="pd40"><b>Sex · 19h–21h:</b> Português — interpretação avançada.</label></div>
+        <div class="chk"><input type="checkbox" id="pd41"><label for="pd41"><b>Sáb · 08h30 (3 h):</b> Refazer o Simulado 2 cronometrado.</label></div>
+        <div class="chk"><input type="checkbox" id="pd42"><label for="pd42"><b>Dom · 09h revisão leve:</b> Revisão + flashcards. Descanso.</label></div>
+        <h4 class="wk">Semana 7 — Revisão geral</h4>
+        <div class="chk"><input type="checkbox" id="pd43"><label for="pd43"><b>Seg · 19h–21h:</b> Refazer o caderno de erros — Previdenciário.</label></div>
+        <div class="chk"><input type="checkbox" id="pd44"><label for="pd44"><b>Ter · 19h–21h:</b> Refazer o caderno de erros — Português e RLM.</label></div>
+        <div class="chk"><input type="checkbox" id="pd45"><label for="pd45"><b>Qua · 19h–21h:</b> Refazer o caderno de erros — Direitos e básicos.</label></div>
+        <div class="chk"><input type="checkbox" id="pd46"><label for="pd46"><b>Qui · 19h–21h:</b> Reler todas as tabelas (segurados/dependentes/carência/benefícios).</label></div>
+        <div class="chk"><input type="checkbox" id="pd47"><label for="pd47"><b>Sex · 19h–21h:</b> Simulado aleatório (misto) cronometrado.</label></div>
+        <div class="chk"><input type="checkbox" id="pd48"><label for="pd48"><b>Sáb · 08h30 (3 h):</b> Refazer o simulado da pior nota.</label></div>
+        <div class="chk"><input type="checkbox" id="pd49"><label for="pd49"><b>Dom · 09h revisão leve:</b> Revisão do caderno inteiro. Descanso.</label></div>
+        <h4 class="wk">Semana 8 — Reta final</h4>
+        <div class="chk"><input type="checkbox" id="pd50"><label for="pd50"><b>Seg · 19h–21h:</b> Só caderno de erros e tabelas (Previdenciário).</label></div>
+        <div class="chk"><input type="checkbox" id="pd51"><label for="pd51"><b>Ter · 19h–21h:</b> Só flashcards campeões e mnemônicos.</label></div>
+        <div class="chk"><input type="checkbox" id="pd52"><label for="pd52"><b>Qua · 19h–21h:</b> Revisão relâmpago dos básicos.</label></div>
+        <div class="chk"><input type="checkbox" id="pd53"><label for="pd53"><b>Qui · 19h–21h:</b> Simulado leve (30 itens) + revisão.</label></div>
+        <div class="chk"><input type="checkbox" id="pd54"><label for="pd54"><b>Sex · 19h–21h:</b> Descanso ativo: flashcards.</label></div>
+        <div class="chk"><input type="checkbox" id="pd55"><label for="pd55"><b>Sáb · 08h30 (3 h):</b> Conferir documentos e local de prova.</label></div>
+        <div class="chk"><input type="checkbox" id="pd56"><label for="pd56"><b>Dom · 09h revisão leve:</b> DESCANSO total. Confie no que estudou.</label></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn ghost" id="plano-reset" type="button">Zerar meu progresso do cronograma</button></div>
+
+      <div class="callout" style="margin-top:22px">
+        <h3 style="margin-top:0">🗓️ Semana da prova — só revisão</h3>
+        <p><b>Nada de matéria nova.</b> Reveja caderno de erros, tabelas (segurados/dependentes/carência/benefícios) e flashcards.</p>
+        <div class="tw"><table>
+          <thead><tr><th>Momento</th><th>O quê</th></tr></thead>
+          <tbody>
+          <tr><td class="k">Últimos 3 dias</td><td>Caderno de erros, tabelas de benefícios e flashcards campeões.</td></tr>
+          <tr><td class="k">Véspera</td><td>Descanso. Checklist de documentos. Dormir cedo.</td></tr>
+          <tr><td class="k">Na prova (Cebraspe)</td><td><b>Só marque Certo/Errado com certeza</b> — o erro anula o acerto. Na dúvida real, deixe em branco. Cuidado com “sempre/somente/nunca”.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+</section>
+
+    <section id="memoria"><div class="card">
+      <p class="eyebrow">O método que fixa</p>
+      <h2 class="sec">Como fixar na memória (com base em evidências)</h2>
+      <div class="grid2">
+        <div class="mini"><h4>1. Recuperação ativa</h4><p style="margin:0">Feche o material e escreva/explique de memória; só depois confira.</p></div>
+        <div class="mini"><h4>2. Revisão espaçada</h4><p style="margin:0">Reveja cada tema em <strong>24 h, 7 dias e 21 dias</strong>. Os flashcards com “Sei/Não sei” fazem isso sozinhos.</p></div>
+        <div class="mini"><h4>3. Questões como método</h4><p style="margin:0">Metade do tempo resolvendo itens Certo/Errado. Cada erro vira uma linha no caderno de erros.</p></div>
+        <div class="mini"><h4>4. Tabelas próprias</h4><p style="margin:0">Transforme a lei em tabela (segurados × dependentes × carência × benefícios). Escrever à mão fixa mais.</p></div>
+        <div class="mini"><h4>5. Técnica Feynman</h4><p style="margin:0">Explique como para uma criança de 12 anos. Onde travar, falta entendimento.</p></div>
+        <div class="mini"><h4>6. Intercalação</h4><p style="margin:0">Alterne matérias no dia (Previdenciário + Português + RLM).</p></div>
+      </div>
+      <h4>Mnemônicos que salvam (INSS)</h4>
+      <ul>
+        <li><strong>Seguridade = SPA</strong>: Saúde, Previdência, Assistência (art. 194).</li>
+        <li><strong>Só a Previdência é contributiva</strong>; saúde e assistência independem de contribuição.</li>
+        <li><strong>Segurados obrigatórios:</strong> Empregado, Doméstico, Avulso, Contribuinte Individual, Especial.</li>
+        <li><strong>Dependentes:</strong> Classe I (cônjuge/filhos) exclui II (pais) que exclui III (irmãos).</li>
+        <li><strong>Sem carência:</strong> pensão por morte, salário-família, auxílio-acidente, incapacidade por acidente.</li>
+        <li><strong>Aposentadorias:</strong> carência 180 contribuições.</li>
+        <li><strong>BPC:</strong> 1 salário mínimo, idoso 65+ ou PcD, assistencial (sem contribuição).</li>
+        <li><strong>Negar “se p, então q” = “p e não q”</strong>; equivalente = contrapositiva.</li>
+      </ul>
+    </div></section>
+
+    <!-- ============ DOMÍNIO POR PRIORIDADE ============ -->
+    <section id="dominio">
+      <p class="eyebrow">Domínio por prioridade</p>
+      <h2 class="sec">Dominar cada P1, P2 e P3 — do jeito certo</h2>
+      <p>A prova é de <strong>itens Certo/Errado</strong> e <strong>cada erro anula um acerto</strong>. O que mais decide é o <b>bloco de Conhecimentos Específicos (Direito Previdenciário/Seguridade)</b> — por isso vários P1 são dele. Estude nesta ordem: <strong>primeiro TODOS os P1</strong>, depois P2, e só então P3. Em cada tema: <b>Aprenda</b> → <b>Entenda</b> → <b class="okc">🎯 Na prova</b>. Pratique nas <a href="#treinos-sec">aulas + treinos</a>.</p>
+      <div class="prband p1"><span class="tag">P1</span><h3>Cai com certeza e pesa — domine 100%</h3><span class="cnt">comece por aqui</span></div>
+      <div class="domgrid">
+<div class="domc"><h4>Seguridade Social — o tripé <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> seguridade é o “guarda-chuva” de proteção social: <b>Saúde + Previdência + Assistência</b> (art. 194). Saúde e assistência são de graça (não dependem de contribuição); a <b>previdência é um seguro</b>: você contribui para ter direito.</p>
+  <p><b>Entenda:</b> art. 194–204 da CF. Saúde (196) = todos; Assistência (203) = a quem precisa; Previdência (201) = contributiva e obrigatória.</p>
+  <p class="na"><b>🎯 Na prova:</b> não confundir: só a previdência é contributiva; “assistência exige contribuição” = errado.</p></div>
+<div class="domc"><h4>Segurados do RGPS <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> segurado é quem está coberto. <b>Obrigatórios</b> (trabalham): empregado, doméstico, avulso, contribuinte individual, segurado especial. <b>Facultativo</b>: quem NÃO trabalha e contribui por opção (estudante, dona de casa).</p>
+  <p><b>Entenda:</b> filiação do obrigatório = exercício da atividade; facultativo exige 16 anos e não pode exercer atividade remunerada.</p>
+  <p class="na"><b>🎯 Na prova:</b> confundir contribuinte individual (trabalha por conta própria) com facultativo (não trabalha).</p></div>
+<div class="domc"><h4>Dependentes <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> dependente é quem recebe por causa do segurado. Classe I: cônjuge/companheiro(a) e filhos menores de 21 ou inválidos (dependência <b>presumida</b>); Classe II: pais; Classe III: irmãos. A <b>classe I exclui as demais</b>.</p>
+  <p><b>Entenda:</b> art. 16 da Lei 8.213/91. Invalidez afasta o limite de idade.</p>
+  <p class="na"><b>🎯 Na prova:</b> havendo dependente de classe superior, os das inferiores não recebem.</p></div>
+<div class="domc"><h4>Carência <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> carência é o número mínimo de contribuições mensais para ter direito ao benefício. Ex.: aposentadorias = 180. Alguns benefícios <b>não exigem carência</b>.</p>
+  <p><b>Entenda:</b> sem carência: pensão por morte, salário-família, auxílio-acidente e incapacidade por acidente.</p>
+  <p class="na"><b>🎯 Na prova:</b> achar que pensão por morte exige carência (não exige); trocar os números.</p></div>
+<div class="domc"><h4>Benefícios — aposentadorias e auxílios <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> após a <b>Reforma (EC 103/2019)</b>, a aposentadoria por tempo de contribuição pura foi extinta (há transição). Auxílios: <b>por incapacidade temporária</b> (antigo auxílio-doença), acidente, salário-maternidade, salário-família, pensão por morte.</p>
+  <p><b>Entenda:</b> auxílio por incapacidade temporária: após 15 dias, paga o INSS. Salário-maternidade: 120 dias.</p>
+  <p class="na"><b>🎯 Na prova:</b> usar regras antigas (tempo de contribuição puro); dizer “auxílio-doença é vitalício”.</p></div>
+<div class="domc"><h4>Interpretação de texto <span class="mt">Língua Portuguesa</span></h4>
+  <p class="ap"><b>Aprenda:</b> interpretar é responder pelo que o texto diz, não pela sua opinião. A alternativa certa está ancorada no texto; ir além (extrapolar) costuma ser a errada.</p>
+  <p><b>Entenda:</b> compreensão × inferência × extrapolação; ideia central × secundária.</p>
+  <p class="na"><b>🎯 Na prova:</b> desconfie de “sempre/todos” e de informação verdadeira mas ausente do texto.</p></div>
+<div class="domc"><h4>Concordância e crase <span class="mt">Língua Portuguesa</span></h4>
+  <p class="ap"><b>Aprenda:</b> <i>haver</i>(existir) e <i>fazer</i>(tempo) são impessoais → singular (“Houve”, “Faz dois anos”). Crase: teste do “ao” (se vira “ao”, tem crase).</p>
+  <p><b>Entenda:</b> “existir” concorda (“Existem pedidos”); nunca há crase antes de verbo/masculino/pronome.</p>
+  <p class="na"><b>🎯 Na prova:</b> “Houveram” e “fazem X anos” são sempre erro.</p></div>
+<div class="domc"><h4>Raciocínio lógico — negações <span class="mt">Raciocínio Lógico</span></h4>
+  <p class="ap"><b>Aprenda:</b> o que mais cai é a negação. Negar “se p, então q” NÃO é “se não p...”; é “<b>p e não q</b>”.</p>
+  <p><b>Entenda:</b> ~(p→q)=p∧~q; equivalente = contrapositiva ~q→~p; tabela-verdade tem 2ⁿ linhas.</p>
+  <p class="na"><b>🎯 Na prova:</b> a equivalente é a contrapositiva, não a recíproca; negar “todo” vira “existe um que não”.</p></div>
+<div class="domc"><h4>Direito Constitucional — Seguridade <span class="mt">Direito Constitucional</span></h4>
+  <p class="ap"><b>Aprenda:</b> a CF trata da seguridade nos arts. 194–204. É a ponte com os Específicos: princípios da seguridade, saúde, previdência e assistência.</p>
+  <p><b>Entenda:</b> princípios (art. 194): universalidade, seletividade, distributividade, irredutibilidade, diversidade do financiamento.</p>
+  <p class="na"><b>🎯 Na prova:</b> direito fundamental “absoluto” = errado; “assistência é contributiva” = errado.</p></div>
+<div class="domc"><h4>Direito Administrativo — LIMPE <span class="mt">Direito Administrativo</span></h4>
+  <p class="ap"><b>Aprenda:</b> a Administração segue o <b>LIMPE</b> (Legalidade, Impessoalidade, Moralidade, Publicidade, Eficiência). O servidor só faz o que a lei autoriza.</p>
+  <p><b>Entenda:</b> atos: anulação (ilegal, retroage) × revogação (inoportuno, futuro); vinculado × discricionário.</p>
+  <p class="na"><b>🎯 Na prova:</b> anular ≠ revogar; discricionário admite conveniência, vinculado não.</p></div>
+      </div>
+      <div class="prband p2"><span class="tag">P2</span><h3>Cai bastante — garanta depois dos P1</h3><span class="cnt">segundo bloco</span></div>
+      <div class="domgrid">
+<div class="domc"><h4>Assistência Social (BPC/LOAS) <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> o BPC dá 1 salário mínimo ao idoso (65+) ou à pessoa com deficiência em situação de miséria — <b>sem precisar contribuir</b> (é assistência, não previdência).</p>
+  <p><b>Entenda:</b> LOAS (Lei 8.742/93); em regra não acumula com outro benefício.</p>
+  <p class="na"><b>🎯 Na prova:</b> “BPC exige contribuição” = errado; idade do BPC é 65 (não 60).</p></div>
+<div class="domc"><h4>Custeio da Seguridade <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> a seguridade é paga por <b>toda a sociedade</b> (art. 195): contribuições sobre folha, receita/faturamento e lucro, além dos orçamentos. O <b>salário de contribuição</b> é a base do desconto do segurado.</p>
+  <p><b>Entenda:</b> empregador desconta e recolhe a contribuição do empregado.</p>
+  <p class="na"><b>🎯 Na prova:</b> confundir salário de contribuição (base do desconto) com salário de benefício (base do valor).</p></div>
+<div class="domc"><h4>Informática — segurança <span class="mt">Informática</span></h4>
+  <p class="ap"><b>Aprenda:</b> 3 pilares: confidencialidade, integridade, disponibilidade. Malwares: vírus (hospedeiro), worm (autopropaga), ransomware (sequestra dados).</p>
+  <p><b>Entenda:</b> phishing = engenharia social; defesas: senha forte, 2 fatores, antivírus, backup offline.</p>
+  <p class="na"><b>🎯 Na prova:</b> vírus ≠ worm; contra ransomware o que salva é o backup offline.</p></div>
+<div class="domc"><h4>Ética no serviço público <span class="mt">Ética</span></h4>
+  <p class="ap"><b>Aprenda:</b> agir com honestidade e impessoalidade mesmo sem fiscalização. O Código de Ética (Dec. 1.171/94) traz deveres e vedações do servidor.</p>
+  <p><b>Entenda:</b> publicidade é dever (transparência); vedado usar o cargo em proveito próprio.</p>
+  <p class="na"><b>🎯 Na prova:</b> “ético = legal” = errado; um ato legal pode ser antiético.</p></div>
+      </div>
+      <div class="prband p3"><span class="tag">P3</span><h3>Cai menos — pegue os pontos fáceis</h3><span class="cnt">por último</span></div>
+      <div class="domgrid">
+<div class="domc"><h4>Atualidades da Previdência <span class="mt">Direito Previdenciário</span></h4>
+  <p class="ap"><b>Aprenda:</b> fique por dentro de mudanças recentes (regras de benefícios, revisões, digitalização do INSS/Meu INSS) — a banca gosta de novidades legislativas.</p>
+  <p><b>Entenda:</b> EC 103/2019 e alterações posteriores; regras de transição.</p>
+  <p class="na"><b>🎯 Na prova:</b> confira sempre a redação vigente na data do edital.</p></div>
+      </div>
+      <div class="alert blue"><span class="tag">Regra de ouro Cebraspe</span> — como o erro anula o acerto, só marque quando tiver <b>certeza</b>. Nos P1 (Previdenciário) chegue com convicção; na dúvida real, <b>deixe em branco</b> (não anula nada).</div>
+</section>
+
+    <!-- ============ AULAS + TREINOS ============ -->
+    <section id="treinos-sec">
+      <div class="card">
+        <p class="eyebrow">Aula + prática</p>
+        <h2 class="sec">Aulas e treinos por tema</h2>
+        <p>Aqui você <strong>aprende primeiro</strong> (uma aula curta com exemplo) e <strong>treina em seguida</strong>. Em cada questão aparece o gabarito e a <strong>explicação do porquê</strong> — leia mesmo quando acertar: é o que fixa na memória. Tudo aqui dentro; você não precisa pesquisar fora.</p>
+        <div class="matfilter" id="matfilter"></div>
+      </div>
+      <div id="treinos"></div>
+    </section>
+
+    <!-- ============ ANTES DE CADA SIMULADO ============ -->
+    <section id="antes-sim"><div class="card">
+      <p class="eyebrow">Praticar · o que estudar antes</p>
+      <h2 class="sec">Antes de cada simulado — o que estudar</h2>
+      <p>Não faça os simulados no escuro. Estude o tema (na seção <strong>Aulas e treinos por tema</strong>, com filtro por matéria) e só depois faça o simulado. O ciclo que fixa: <strong>estudar → simular → o erro cai no caderno → estudar só o que errou.</strong></p>
+      <div class="alert red"><span class="tag">Regra de ouro Cebraspe</span> — a prova é Certo/Errado e <b>cada erro anula um acerto</b>. Só marque com certeza; na dúvida real, deixe em branco (não anula).</div>
+      <div class="grid2">
+        <div class="mini"><h4>Simulado 1 — faça agora, SEM estudar</h4><p style="margin:0">É o seu <strong>diagnóstico</strong>. Faça cronometrado para ver onde está mais fraco.</p></div>
+        <div class="mini"><h4>Antes do Simulado 2 — o núcleo previdenciário</h4><p style="margin:0"><strong>Previdenciário:</strong> seguridade, segurados e dependentes.<br><strong>Português:</strong> interpretação, crase, concordância. <strong>RLM:</strong> negações.</p></div>
+        <div class="mini"><h4>Antes do Simulado 3 — benefícios</h4><p style="margin:0"><strong>Previdenciário:</strong> carência, aposentadorias (EC 103/2019), auxílios, salário-maternidade/família.<br><strong>Const./Adm.:</strong> seguridade na CF, LIMPE.</p></div>
+        <div class="mini"><h4>Antes do Simulado 4 — fechar tudo</h4><p style="margin:0"><strong>Previdenciário:</strong> pensão por morte, BPC, custeio.<br>Rode <strong>Só Direito Previdenciário</strong>, refaça o <strong>Caderno de erros</strong> e reforce Ética e Informática.</p></div>
+      </div>
+      <div class="callout" style="margin-top:16px">
+        <h4 style="margin-top:0">A ordem de prioridade</h4>
+        <p style="margin:0">Sempre: <strong>1º Direito Previdenciário/Seguridade</strong> (o que mais pesa) → <strong>2º Português e Raciocínio Lógico</strong> → <strong>3º Constitucional, Administrativo, Ética e Informática</strong>. Dentro de cada matéria, ataque os temas <strong>P1</strong>. Meta: subir o seu <strong>líquido</strong> (certos − errados) a cada simulado.</p>
+      </div>
+    </div></section>
+
+    <!-- ============ 7. SIMULADO ============ -->
+    <section id="simulado"><div class="card">
+      <p class="eyebrow">Seção 7 · itens Certo/Errado · formato Cebraspe</p>
+      <h2 class="sec">Simulado no formato da prova</h2>
+      <p>Marque <strong>Certo</strong> ou <strong>Errado</strong> em cada item e clique em <strong>Corrigir prova</strong>. O site mostra seu resultado <em>líquido</em> (certos − errados, o critério da Cebraspe) e o comentário de cada item. Use o Simulado 1 como diagnóstico e refaça mais adiante. <strong>Só marque quando tiver certeza</strong> — o erro anula o acerto.</p>
+      <div id="sim"></div>
+      <div class="simbar">
+        <button class="btn" id="corrigir">Corrigir prova</button>
+        <button class="btn ghost" id="limpar">Limpar</button>
+        <span class="score" id="scorebox" aria-live="polite"></span>
+      </div>
+    </div></section>
+
+    <!-- ============ SIMULADO 2 ============ -->
+    <section id="simulado2"><div class="card">
+      <p class="eyebrow">Prova online 2 · itens Certo/Errado</p>
+      <h2 class="sec">Simulado 2 (inédito)</h2>
+      <p>Segunda prova no formato Cebraspe (itens Certo/Errado), cobrindo Conhecimentos Básicos (Português, RLM, Ética, Constitucional, Administrativo, Informática) e Conhecimentos Específicos (Direito Previdenciário/Seguridade). Marque tudo e clique em <strong>Corrigir</strong> — a explicação de cada item aparece embaixo dele.</p>
+      <div id="quiz-sim2"></div>
+    </div></section>
+
+    <!-- ============ SIMULADO 3 ============ -->
+    <section id="simulado3"><div class="card">
+      <p class="eyebrow">Prova online 3 · itens Certo/Errado</p>
+      <h2 class="sec">Simulado 3 (inédito)</h2>
+      <p>Terceira prova no formato Cebraspe (itens Certo/Errado), com foco em Direito Previdenciário e nos básicos. Cronometre, marque só o que tem certeza e clique em <strong>Corrigir</strong>.</p>
+      <div id="quiz-sim3"></div>
+    </div></section>
+
+    <!-- ============ SIMULADO 4 ============ -->
+    <section id="simulado4"><div class="card">
+      <p class="eyebrow">Prova online 4 · itens Certo/Errado</p>
+      <h2 class="sec">Simulado 4 (inédito)</h2>
+      <p>Quarta prova no formato Cebraspe (itens Certo/Errado). Use o <strong>cronômetro</strong> da barra de correção para treinar o ritmo. Marque só o que tem certeza e clique em <strong>Corrigir</strong> — o painel <em>Revise seus erros</em> aparece no fim.</p>
+      <div id="quiz-sim4"></div>
+    </div></section>
+
+    <!-- ============ SIMULADO ALEATÓRIO ============ -->
+    <section id="aleatorio"><div class="card">
+      <p class="eyebrow">Prova sorteada do banco · itens Certo/Errado</p>
+      <h2 class="sec">Simulado aleatório</h2>
+      <p>Sorteia <strong>40 itens Certo/Errado do banco inteiro</strong> (todos os simulados e treinos), <strong>sempre diferentes</strong> — assim você treina o conteúdo, e não a ordem das respostas. Tem cronômetro, e os erros vão para o seu <a href="#caderno">caderno</a>.</p>
+      <button class="btn" id="aleatorio-gerar" type="button">Gerar 40 questões</button>
+      <div id="quiz-aleatorio" style="margin-top:14px"></div>
+    </div></section>
+
+    <!-- ============ SÓ ESPECÍFICOS ============ -->
+    <section id="especifico"><div class="card">
+      <p class="eyebrow">Treino focado · a matéria que mais pesa</p>
+      <h2 class="sec">Só Direito Previdenciário</h2>
+      <p>O <strong>Direito Previdenciário / Seguridade Social</strong> é o que mais cai e mais pesa no INSS. Aqui você treina <strong>só ele</strong>: itens Certo/Errado sorteados do banco de Previdenciário, sempre diferentes. Os erros vão para o seu <a href="#caderno">caderno</a>.</p>
+      <button class="btn" id="espec-gerar" type="button">Gerar 10 de Previdenciário</button>
+      <div id="espec-list" style="margin-top:14px"></div>
+    </div></section>
+
+    <!-- ============ CADERNO DE ERROS ============ -->
+    <section id="caderno"><div class="card">
+      <p class="eyebrow">Revisar</p>
+      <h2 class="sec">Meu caderno de erros <span id="cad-count" class="cadcount"></span></h2>
+      <p>Toda questão que você errar nos simulados e nos treinos entra aqui <strong>automaticamente</strong> e fica salva no seu navegador. Refaça-as quantas vezes precisar — <strong>rever o próprio erro é o que mais fixa</strong>. Quando acertar, clique em <em>Tirar do caderno as que acertei</em> para ele ir enxugando.</p>
+      <div class="cadtools">
+        <button class="btn ghost" id="cad-remove" type="button">Tirar do caderno as que acertei</button>
+        <button class="btn ghost" id="cad-download" type="button">Baixar para imprimir</button>
+        <button class="btn ghost" id="cad-clear" type="button">Limpar caderno</button>
+      </div>
+      <div id="caderno-list"></div>
+    </div></section>
+
+    <!-- ============ 9. FLASHCARDS ============ -->
+    <section id="flashcards"><div class="card">
+      <p class="eyebrow">Seção 9 · flashcards</p>
+      <h2 class="sec">Flashcards — revisão diária</h2>
+      <p>Toque no cartão para ver a resposta (responda em voz alta <em>antes</em> de virar). Depois marque <b>Sei ✓</b> ou <b>Não sei ↺</b>: o cartão sobe ou volta de <b>caixa</b> e reaparece no momento certo (revisão espaçada — 1, 3, 7 e 21 dias). Use <b>Revisar hoje</b> para ver só os que estão vencidos.</p>
+      <div class="fctools">
+        <button class="btn ghost" id="fc-shuffle">Embaralhar</button>
+        <button class="btn ghost" id="fc-all">Mostrar/ocultar todas</button>
+        <span class="score" id="fc-count"></span>
+      </div>
+      <div id="fcs" class="weights" style="gap:12px"></div>
+    </div></section>
+
+    <!-- ============ REVISÃO DE VÉSPERA ============ -->
+    <section id="vespera"><div class="card">
+      <p class="eyebrow">Reta final · leia na véspera e na manhã da prova</p>
+      <h2 class="sec">Revisão de véspera — tudo numa folha</h2>
+      <p>Na véspera e na manhã da prova, <strong>não estude matéria nova</strong>. Releia só isto e descanse.</p>
+      <h3>Números e fatos que caem</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Tema</th><th>Guarde</th></tr></thead>
+        <tbody>
+        <tr><td class="k">Seguridade (art. 194)</td><td>Saúde + Previdência + Assistência</td></tr>
+        <tr><td class="k">Contributiva?</td><td>Só a Previdência (art. 201). Saúde e Assistência: não.</td></tr>
+        <tr><td class="k">Segurados obrigatórios</td><td>empregado · doméstico · avulso · contribuinte individual · especial</td></tr>
+        <tr><td class="k">Facultativo</td><td>não exerce atividade remunerada; 16 anos; por opção</td></tr>
+        <tr><td class="k">Dependentes</td><td>I (cônjuge/filhos, presumida) &gt; II (pais) &gt; III (irmãos)</td></tr>
+        <tr><td class="k">Carência aposentadorias</td><td>180 contribuições</td></tr>
+        <tr><td class="k">Sem carência</td><td>pensão por morte, salário-família, auxílio-acidente, incapacidade por acidente</td></tr>
+        <tr><td class="k">Salário-maternidade</td><td>120 dias (cabe adoção); individual/facultativa: carência 10</td></tr>
+        <tr><td class="k">Salário-família</td><td>só baixa renda; filho &lt; 14 ou inválido</td></tr>
+        <tr><td class="k">BPC/LOAS</td><td>1 salário mínimo; idoso 65+ ou PcD; sem contribuição</td></tr>
+        <tr><td class="k">EC 103/2019</td><td>extinguiu a aposentadoria por tempo de contribuição pura</td></tr>
+        <tr><td class="k">Auxílio-doença</td><td>hoje: auxílio por incapacidade temporária</td></tr>
+        </tbody>
+      </table></div>
+      <h3>As pegadinhas campeãs</h3>
+      <ul>
+        <li><strong>“Assistência exige contribuição”</strong> → errado (independe).</li>
+        <li><strong>Pensão por morte NÃO exige carência.</strong></li>
+        <li><strong>BPC é assistencial</strong> (não previdenciário): sem contribuição; idoso 65+.</li>
+        <li><strong>Facultativo</strong> não exerce atividade remunerada (≠ contribuinte individual).</li>
+        <li><strong>Classe I exclui II e III</strong> na pensão.</li>
+        <li><strong>“Houveram”</strong> não existe nesse sentido → “Houve”.</li>
+        <li><strong>Negação de “se p então q”</strong> = “p e não q”.</li>
+      </ul>
+      <div class="alert red"><span class="tag">Regra de ouro no dia</span> — leia cada item com calma e <b>só marque quando tiver certeza</b>. Como o erro anula o acerto, <b>na dúvida real deixe em branco</b>. Nada de chutar no escuro.</div>
+    </div></section>
+
+    <!-- ============ 10. FONTES ============ -->
+    <section id="fontes"><div class="card">
+      <p class="eyebrow">Seção 10</p>
+      <h2 class="sec">Fontes oficiais — onde baixar</h2>
+      <div class="tw"><table>
+        <thead><tr><th>Material</th><th>Onde</th></tr></thead>
+        <tbody>
+        <tr><td class="k">Edital e provas anteriores (INSS 2022, Cebraspe)</td><td>cebraspe.org.br (concursos encerrados)</td></tr>
+        <tr><td class="k">Constituição (arts. 194–204 — Seguridade Social)</td><td>planalto.gov.br</td></tr>
+        <tr><td class="k">Lei 8.212/1991 (custeio) e Lei 8.213/1991 (benefícios)</td><td>planalto.gov.br</td></tr>
+        <tr><td class="k">Decreto 3.048/1999 (Regulamento da Previdência)</td><td>planalto.gov.br</td></tr>
+        <tr><td class="k">EC 103/2019 (Reforma da Previdência)</td><td>planalto.gov.br</td></tr>
+        <tr><td class="k">Ética (Decreto 1.171/1994) e Lei 8.112/90</td><td>planalto.gov.br</td></tr>
+        <tr><td class="k">Informações do INSS e benefícios</td><td>gov.br/inss · Meu INSS</td></tr>
+        </tbody>
+      </table></div>
+      <p class="peg">Baixe as Leis 8.212/91 e 8.213/91 e o Decreto 3.048/99 em PDF, marque com marca-texto as tabelas (segurados, carência, benefícios) e refaça de memória — é o que mais cai.</p>
+    </div></section>
+
+    <!-- ============ 11. CLAUDE ============ -->
+    <section id="claude"><div class="card">
+      <p class="eyebrow">Seção 11</p>
+      <h2 class="sec">Seu tutor de IA — tire dúvidas e treine sem limite</h2>
+      <p>O site é o material fixo (aulas, simulados, flashcards). Para <strong>questões ilimitadas e explicações personalizadas</strong>, use uma <strong>inteligência artificial</strong> como professor particular. Tem dois jeitos:</p>
+      <div class="callout" style="margin-top:8px">
+        <h3 style="margin-top:0">✅ Jeito fácil (recomendado) — cole num chat de IA gratuito</h3>
+        <p>Abra <strong>Claude.ai</strong>, <strong>ChatGPT</strong> ou <strong>Gemini</strong> (dá para usar de graça no navegador do celular), <strong>copie o texto abaixo</strong>, cole e envie. A IA vira seu tutor do INSS na hora.</p>
+        <pre id="tutor-prompt" style="white-space:pre-wrap;word-break:break-word;background:var(--line-2);padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.5;max-height:300px;overflow:auto;margin:10px 0">Você é meu PROFESSOR PARTICULAR e cursinho para o concurso do INSS (cargo Técnico do Seguro Social, nível médio), banca Cebraspe, prova de Certo/Errado (cada erro anula um acerto — só marque com certeza). Eu começo quase do zero — ensine com paciência e da forma mais simples possível.\n\nRegras que você deve seguir sempre:\n1) Em cada tema, siga a ordem: APRENDA (explique do zero, com um exemplo do dia a dia) → ENTENDA (a regra enxuta) → NA PROVA (como cai e qual a pegadinha da banca).\n2) Prioridade das matérias: Direito Previdenciário e Seguridade Social (segurados, dependentes, carência, benefícios, custeio), depois Português, Raciocínio Lógico, Direito Constitucional e Administrativo, Ética e Informática.\n3) Gere questões no formato Certo/Errado. Só mostre o gabarito depois que eu responder e explique CADA erro: o que marquei, por que está errado, a regra certa e como não cair de novo.\n4) Use revisão espaçada: ao fim, gere 5 flashcards do que eu errei e me lembre de revisar em 24 horas, 7 dias e 21 dias.\n5) Nunca invente lei, artigo, prazo ou valor; se não tiver certeza, diga que precisa conferir na fonte oficial (Leis 8.212/91 e 8.213/91, Decreto 3.048/99, CF).\n\nComece me perguntando quanto tempo eu tenho hoje e qual matéria quero; então monte a sessão de hoje.</pre>
+        <button class="btn" type="button" onclick="try{var t=document.getElementById('tutor-prompt').innerText;if(navigator.clipboard){navigator.clipboard.writeText(t);}else{var r=document.createRange();r.selectNode(document.getElementById('tutor-prompt'));window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');}this.textContent='✓ Copiado! Agora cole no chat da IA';}catch(e){this.textContent='Selecione o texto acima e copie';}">Copiar o prompt do tutor</button>
+        <p class="peg" style="margin:10px 0 0">Dica: depois de colar, é só conversar em português — “me explique de novo mais simples”, “me dê 10 questões de benefícios”, “corrija: 1-C, 2-E…”, “o que revisar hoje?”.</p>
+      </div>
+      <div class="alert blue" style="margin-top:16px">
+        <span class="tag">⚙️ Jeito avançado (opcional) — Claude Code no computador</span>
+        Se você usa o <strong>Claude Code</strong>, crie uma pasta <code>inss-2026</code> com <code>CLAUDE.md</code>, <code>base_conhecimento_inss.md</code> e uma subpasta <code>leis/</code> (Leis 8.212/91, 8.213/91, Decreto 3.048/99, CF). Rode <code>claude</code> e peça sessões, simulados e correção. Ele mantém <code>progresso.md</code> e <code>erros.md</code>.
+      </div>
+    </div></section>
+
+    <footer>
+      Material de estudo · Concurso INSS — Técnico do Seguro Social · banca Cebraspe · projetado pelo último edital (2022), a ser ajustado quando o novo sair.<br>
+      Confira sempre os dados no edital oficial. Bons estudos e boa prova. 📋
+    </footer>
+  </main>
+</div>
+<button class="back" id="back" aria-label="Voltar ao topo">↑</button>
+
+<script>
+/* ---------- tema ---------- */
+(function(){
+  var root=document.documentElement, key="dmae:theme";
+  try{var s=localStorage.getItem(key); if(s)root.setAttribute("data-theme",s);}catch(e){}
+  document.getElementById("theme").onclick=function(){
+    var cur=root.getAttribute("data-theme");
+    var dark=cur? cur==="dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+    var nx=dark?"light":"dark"; root.setAttribute("data-theme",nx);
+    try{localStorage.setItem(key,nx);}catch(e){}
+  };
+})();
+/* ---------- countdown ---------- */
+(function(){
+  var prova=null; /* INSS: edital do próximo concurso ainda não saiu */ // TROCAR pela data da prova (ano, mês-1, dia)
+  function upd(){var e=document.getElementById("cddays"); if(e)e.textContent=prova?Math.max(0,Math.ceil((prova-new Date())/86400000))+" dias":"edital em breve";}
+  upd();
+})();
+/* ---------- menu mobile + TOC ativo ---------- */
+(function(){
+  var toc=document.getElementById("toc"),mb=document.getElementById("menub");
+  mb.onclick=function(){var o=toc.classList.toggle("open");document.body.classList.toggle("navopen",o);};
+  toc.addEventListener("click",function(e){if(e.target.tagName==="A"){toc.classList.remove("open");document.body.classList.remove("navopen");}});
+  var links=[].slice.call(toc.querySelectorAll("a"));
+  var map={}; links.forEach(function(a){map[a.getAttribute("href").slice(1)]=a;});
+  var obs=new IntersectionObserver(function(en){
+    en.forEach(function(x){ if(x.isIntersecting){ links.forEach(function(a){a.classList.remove("on");}); var a=map[x.target.id]; if(a)a.classList.add("on"); }});
+  },{rootMargin:"-64px 0px -70% 0px"});
+  document.querySelectorAll("section[id]").forEach(function(s){obs.observe(s);});
+  var back=document.getElementById("back");
+  addEventListener("scroll",function(){back.classList.toggle("show",scrollY>600);});
+  back.onclick=function(){scrollTo({top:0,behavior:"smooth"});};
+})();
+/* ---------- plano checklist ---------- */
+(function(){
+  function K(){return window.DMAE_KEY("plano");}
+  function readSt(){try{return JSON.parse(localStorage.getItem(K())||"{}");}catch(e){return{};}}
+  function renderProg(){
+    var boxes=document.querySelectorAll("#diario-list input");
+    var total=boxes.length,done=0;[].forEach.call(boxes,function(c){if(c.checked)done++;});
+    var pct=total?Math.round(done/total*100):0;
+    var el=document.getElementById("crono-prog");
+    if(el)el.innerHTML='<div class="cprow"><span><b>Progresso do plano diário</b></span><span class="cbar"><i style="width:'+pct+'%"></i></span><span>'+done+'/'+total+' dias ('+pct+'%)</span></div>';
+  }
+  window.DMAE_planoApply=function(){
+    var st=readSt();
+    document.querySelectorAll("#plano-list input, #diario-list input").forEach(function(c){
+      var on=!!st[c.id];c.checked=on;c.closest(".chk").classList.toggle("done",on);
+    });
+    renderProg();
+  };
+  document.querySelectorAll("#plano-list input, #diario-list input").forEach(function(c){
+    c.onchange=function(){
+      var st=readSt();st[c.id]=c.checked;try{localStorage.setItem(K(),JSON.stringify(st));}catch(e){}
+      c.closest(".chk").classList.toggle("done",c.checked);renderProg();
+      if(window.DMAE_syncPush)window.DMAE_syncPush();
+    };
+  });
+  var pr=document.getElementById("plano-reset");
+  if(pr)pr.onclick=function(){
+    if(!confirm("Desmarcar todos os dias e semanas do cronograma?"))return;
+    try{localStorage.removeItem(K());}catch(e){}
+    document.querySelectorAll("#plano-list input, #diario-list input").forEach(function(c){c.checked=false;c.closest(".chk").classList.remove("done");});
+    renderProg();
+    if(window.DMAE_syncPush)window.DMAE_syncPush();
+  };
+  window.DMAE_planoApply();
+})();
+
+/* ---------- SIMULADO ---------- */
+var SIM=[
+{b:"Conhecimentos Básicos — Português e RLM (1–8)"},
+{n:1,t:"(Português) A frase “Houve muitos requerimentos hoje” está correta quanto à concordância.",o:["Certo","Errado"],c:0,e:"“Haver” no sentido de existir é impessoal → fica no singular (“Houve”)."},
+{n:2,t:"(Português) Em “Ele se referiu à norma vigente”, a crase está corretamente empregada.",o:["Certo","Errado"],c:0,e:"“Referir-se a” + “a norma” (fem., com artigo) = à."},
+{n:3,t:"(Português) Trocar “Faltou porque adoeceu” por “Faltou, embora adoecesse” mantém o sentido.",o:["Certo","Errado"],c:1,e:"Causa (porque) vira concessão (embora) — muda o sentido."},
+{n:4,t:"(RLM) A negação de “Todo segurado tem direito a benefício” é “algum segurado não tem direito a benefício”.",o:["Certo","Errado"],c:0,e:"Negar “todo A é B” = existe A que não é B."},
+{n:5,t:"(RLM) “Se contribui, então tem qualidade de segurado” é equivalente a “se não tem qualidade de segurado, então não contribui”.",o:["Certo","Errado"],c:0,e:"É a contrapositiva — sempre equivalente ao condicional."},
+{n:6,t:"(RLM) Uma proposição composta por 3 proposições simples diferentes tem tabela-verdade de 6 linhas.",o:["Certo","Errado"],c:1,e:"São 2³ = 8 linhas (2 elevado ao nº de proposições simples)."},
+{n:7,t:"(RLM) A frase “Requeira o benefício!” é uma proposição lógica.",o:["Certo","Errado"],c:1,e:"É imperativa (ordem) — não tem valor V/F, logo não é proposição."},
+{n:8,t:"(Informática) Backup é uma medida de segurança contra a perda de dados por ransomware.",o:["Certo","Errado"],c:0,e:"Com backup (offline) dá para restaurar dados sequestrados."},
+{b:"Conhecimentos Básicos — Ética, Constitucional e Administrativo (9–14)"},
+{n:9,t:"(Ética) No serviço público, um ato pode ser legal e, ainda assim, ser antiético.",o:["Certo","Errado"],c:0,e:"Legalidade e moralidade são distintas."},
+{n:10,t:"(Constitucional) A seguridade social compreende saúde, previdência social e assistência social.",o:["Certo","Errado"],c:0,e:"Art. 194 da CF: o tripé da seguridade."},
+{n:11,t:"(Constitucional) Os direitos e garantias fundamentais são absolutos e não admitem restrição.",o:["Certo","Errado"],c:1,e:"Nenhum direito é absoluto; todos admitem limites."},
+{n:12,t:"(Constitucional) A saúde é direito de todos e dever do Estado, independentemente de contribuição.",o:["Certo","Errado"],c:0,e:"Art. 196 da CF — a saúde independe de contribuição."},
+{n:13,t:"(Administrativo) Pela legalidade, o servidor público só pode fazer o que a lei autoriza.",o:["Certo","Errado"],c:0,e:"Legalidade administrativa (diferente do particular)."},
+{n:14,t:"(Administrativo) A anulação atinge ato ilegal, com efeitos retroativos; a revogação atinge ato legal inoportuno, com efeitos futuros.",o:["Certo","Errado"],c:0,e:"Distinção clássica anulação × revogação."},
+{b:"Conhecimentos Específicos — Previdenciário/Seguridade (15–24)"},
+{n:15,t:"(Previdenciário) A previdência social tem caráter contributivo e filiação obrigatória.",o:["Certo","Errado"],c:0,e:"Art. 201 da CF — a previdência é contributiva e de filiação obrigatória."},
+{n:16,t:"(Previdenciário) A assistência social será prestada a quem dela necessitar, independentemente de contribuição.",o:["Certo","Errado"],c:0,e:"Art. 203 da CF — assistência independe de contribuição."},
+{n:17,t:"(Previdenciário) O empregado doméstico é segurado obrigatório do RGPS.",o:["Certo","Errado"],c:0,e:"Está no rol de segurados obrigatórios."},
+{n:18,t:"(Previdenciário) O segurado facultativo é aquele que exerce atividade remunerada e se filia por opção.",o:["Certo","Errado"],c:1,e:"Facultativo é quem NÃO exerce atividade remunerada e contribui por opção (ex.: estudante, dona de casa)."},
+{n:19,t:"(Previdenciário) Havendo dependentes da classe I (cônjuge/filhos), os pais (classe II) não recebem a pensão.",o:["Certo","Errado"],c:0,e:"A existência de dependente de classe superior exclui as inferiores."},
+{n:20,t:"(Previdenciário) A pensão por morte exige carência mínima de 180 contribuições.",o:["Certo","Errado"],c:1,e:"A pensão por morte, em regra, NÃO exige carência."},
+{n:21,t:"(Previdenciário) O benefício conhecido antigamente como “auxílio-doença” hoje se chama auxílio por incapacidade temporária.",o:["Certo","Errado"],c:0,e:"Mudança de nomenclatura mantida na legislação atual."},
+{n:22,t:"(Previdenciário) A EC 103/2019 (Reforma da Previdência) extinguiu a aposentadoria por tempo de contribuição pura, criando regras de transição.",o:["Certo","Errado"],c:0,e:"A Reforma extinguiu a ATC pura."},
+{n:23,t:"(Assistência) O Benefício de Prestação Continuada (BPC/LOAS) exige que o beneficiário tenha contribuído para a previdência.",o:["Certo","Errado"],c:1,e:"O BPC é assistencial: independe de contribuição."},
+{n:24,t:"(Custeio) O financiamento da seguridade social é feito por toda a sociedade, de forma direta e indireta.",o:["Certo","Errado"],c:0,e:"Art. 195 da CF — financiamento por toda a sociedade."}
+];
+/* Painel "Revise seus erros" — usado por todos os simulados e treinos */
+window.renderErrPanel=function(host,anchorEl,errors,total){
+  var id=host.id+"-errpanel";
+  var old=document.getElementById(id); if(old)old.parentNode.removeChild(old);
+  var d=document.createElement("div"); d.className="errpanel"; d.id=id;
+  if(!errors.length){
+    d.className+=" zero";
+    d.innerHTML='<h4>Você não errou nenhuma! 🎉</h4><p>Acertou todas as '+total+'. Refaça daqui a alguns dias sem olhar — se continuar acertando, está fixado.</p>';
+  } else {
+    function _txt(o){var s=o.querySelectorAll("span"); return s.length?s[s.length-1].innerHTML:o.textContent;}
+    var lis=errors.map(function(e){
+      var optsHTML="", youTxt=(e.you||'em branco'), corrTxt=e.correct;
+      var qd=document.getElementById(e.anchor);
+      if(qd){
+        var opts=qd.querySelectorAll(".opt");
+        if(opts.length){
+          optsHTML='<div class="eopts">'+[].map.call(opts,function(o){
+            var right=o.classList.contains("right"), wrong=o.classList.contains("wrong");
+            var mk=right?'✓ ':(wrong?'✗ ':'');
+            return '<div class="eopt'+(right?' r':'')+(wrong?' w':'')+'">'+mk+_txt(o)+'</div>';
+          }).join("")+'</div>';
+          if(opts.length<=2){ /* Certo/Errado: usar o texto, não a letra */
+            var r=qd.querySelector(".opt.right"), w=qd.querySelector(".opt.wrong");
+            if(r)corrTxt=_txt(r);
+            youTxt = w?_txt(w):'em branco';
+          }
+        }
+      }
+      return '<li><a href="#'+e.anchor+'">Questão '+e.n+'</a> — você marcou <b class="you">'+youTxt+'</b>; a certa é <b class="ok">'+corrTxt+'</b>.'
+        +'<div class="eq">"'+e.qt+'"</div>'+optsHTML
+        +'<div class="ei"><b>Entenda o porquê:</b> '+e.expl+'</div></li>';
+    }).join("");
+    d.innerHTML='<h4>Revise seus erros — '+errors.length+' de '+total+'</h4>'
+      +'<p><b>Não passe reto:</b> leia o porquê de cada uma. É entendendo o motivo (não decorando a letra) que você fixa na memória e reconhece a mesma pegadinha na prova. Clique no número para reler a questão inteira.</p>'
+      +'<ol>'+lis+'</ol>'
+      +'<p class="tip">Anote cada erro no seu caderno de erros: o que errou · a regra certa · como não repetir. Revise esse caderno em 24 h, 7 dias e 21 dias.</p>';
+  }
+  anchorEl.parentNode.insertBefore(d,anchorEl.nextSibling);
+  d.scrollIntoView({behavior:"smooth",block:"nearest"});
+  return d;
+};
+
+/* Cronômetro de prova (treina o ritmo das 3 h) */
+window.attachTimer=function(simbar,minutes){
+  if(!simbar||simbar.querySelector(".timer"))return;
+  var total=minutes*60,left=total,iv=null;
+  function two(n){return(n<10?"0":"")+n;}
+  function fmt(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return h>0?h+":"+two(m)+":"+two(x):m+":"+two(x);}
+  var wrap=document.createElement("span");wrap.className="timer";
+  var disp=document.createElement("b");disp.className="tdisp";
+  var start=document.createElement("button");start.type="button";start.className="btn ghost tbtn2";start.textContent="▶ Cronômetro";
+  var reset=document.createElement("button");reset.type="button";reset.className="btn ghost tbtn2";reset.textContent="Zerar";reset.style.display="none";
+  function paint(){disp.textContent="⏱ "+fmt(left);disp.classList.toggle("low",left<=300);}
+  function stop(){if(iv){clearInterval(iv);iv=null;}start.textContent="▶ Retomar";}
+  function tick(){left--;if(left<=0){left=0;stop();disp.textContent="⏱ Tempo esgotado";disp.classList.add("low");return;}paint();}
+  paint();
+  start.onclick=function(){if(iv){stop();return;}if(left<=0)left=total;iv=setInterval(tick,1000);start.textContent="⏸ Pausar";reset.style.display="";};
+  reset.onclick=function(){stop();left=total;paint();start.textContent="▶ Cronômetro";};
+  wrap.appendChild(disp);wrap.appendChild(start);wrap.appendChild(reset);
+  simbar.appendChild(wrap);
+};
+
+/* Histórico de desempenho (salvo no navegador) */
+window.recordScore=function(key,label,pct,ac,total,pts,mp,bymat){
+  var K=window.DMAE_KEY("scores"),arr=[];
+  try{arr=JSON.parse(localStorage.getItem(K)||"[]");}catch(e){}
+  function two2(n){return(n<10?"0":"")+n;}
+  var d=new Date();
+  var rec={k:key,l:label,p:pct,a:ac,n:total,d:two2(d.getDate())+"/"+two2(d.getMonth()+1)};
+  if(pts!=null){rec.pt=pts;rec.mp=mp;}
+  if(bymat)rec.m=bymat;
+  arr.push(rec);
+  if(arr.length>40)arr=arr.slice(-40);
+  try{localStorage.setItem(K,JSON.stringify(arr));}catch(e){}
+  if(window.renderDesempenho)window.renderDesempenho();
+  if(window.renderProxima)window.renderProxima();
+  if(window.DMAE_syncPush)window.DMAE_syncPush();
+};
+/* agrega acerto por matéria a partir do histórico */
+window.DMAE_fraca=function(scores){
+  var agg={};(scores||[]).forEach(function(s){if(s.m){for(var k in s.m){agg[k]=agg[k]||{ok:0,tot:0};agg[k].ok+=s.m[k].ok;agg[k].tot+=s.m[k].tot;}}});
+  var ks=Object.keys(agg).filter(function(k){return agg[k].tot>=3;});
+  if(!ks.length)return null;
+  ks.sort(function(a,b){return (agg[a].ok/agg[a].tot)-(agg[b].ok/agg[b].tot);});
+  return {mat:ks[0],pct:Math.round(agg[ks[0]].ok/agg[ks[0]].tot*100)};
+};
+/* recomendação personalizada "Sua próxima ação" */
+window.renderProxima=function(){
+  var host=document.getElementById("proxima");if(!host)return;
+  var scores=[],cad=[];
+  try{scores=JSON.parse(localStorage.getItem(window.DMAE_KEY("scores"))||"[]");}catch(e){}
+  try{cad=JSON.parse(localStorage.getItem(window.DMAE_KEY("cadernoerros"))||"[]");}catch(e){}
+  var txt,href,bt;
+  if(!scores.length){
+    txt="Faça o <b>Simulado 1</b> cronometrado, <b>sem estudar antes</b>. É o diagnóstico: mostra onde você está mais fraco e já enche seu caderno de erros.";
+    href="#simulado";bt="Fazer o Simulado 1 →";
+  } else if(cad.length>0){
+    txt="Você tem <b>"+cad.length+"</b> quest"+(cad.length>1?"ões":"ão")+" no seu <b>caderno de erros</b>. Refazer o próprio erro é o que mais fixa — comece por aí.";
+    href="#caderno";bt="Abrir meu caderno →";
+  } else {
+    txt="Sem erros pendentes! Reforce o que mais pesa no INSS: treine <b>Só Direito Previdenciário</b>.";
+    href="#especifico";bt="Treinar Previdenciário →";
+  }
+  var f=window.DMAE_fraca(scores),foco="";
+  if(f)foco='<p class="foco">🎯 Sua matéria mais fraca até agora: <b>'+f.mat+'</b> ('+f.pct+'% de acerto). Dê atenção extra a ela.</p>';
+  var fcDue=0;try{var _fs=JSON.parse(localStorage.getItem(window.DMAE_KEY("fcsrs"))||"{}");var _nw=Date.now();for(var _k in _fs){if(_fs[_k]&&(_fs[_k].due||0)<=_nw)fcDue++;}}catch(e){}
+  var fcNud=fcDue>0?'<p class="foco">🔁 Você tem <b>'+fcDue+'</b> flashcard'+(fcDue>1?"s":"")+' para revisar hoje (revisão espaçada). <a href="#flashcards">Revisar agora →</a></p>':"";
+  host.innerHTML='<h4>Sua próxima ação</h4><p>'+txt+'</p><a class="btn" href="'+href+'">'+bt+'</a>'+foco+fcNud;
+  host.hidden=false;
+};
+window.renderDesempenho=function(){
+  var host=document.getElementById("desempenho");if(!host)return;
+  var arr=[];try{arr=JSON.parse(localStorage.getItem(window.DMAE_KEY("scores"))||"[]");}catch(e){}
+  if(!arr.length){host.innerHTML='<p class="dhint">Faça um simulado e clique em <b>Corrigir</b>: suas notas ficam salvas aqui para você acompanhar a evolução.</p>';return;}
+  var best={},bpt={},bmp={};arr.forEach(function(s){if(best[s.l]==null||s.p>best[s.l])best[s.l]=s.p;if(s.pt!=null&&(bpt[s.l]==null||s.pt>bpt[s.l])){bpt[s.l]=s.pt;bmp[s.l]=s.mp;}});
+  var bestHTML=Object.keys(best).map(function(l){
+    if(bpt[l]!=null){var ok=bpt[l]>=25;return '<span class="dchip">'+l+': <b>'+bpt[l]+'/'+bmp[l]+' pts</b> '+(ok?'✅':'⚠️')+'</span>';}
+    return '<span class="dchip">'+l+': <b>'+best[l]+'%</b></span>';
+  }).join("");
+  var last=arr.slice(-6).reverse().map(function(s){var nota=s.pt!=null?(s.pt+'/'+s.mp+' pts · '+s.p+'%'):(s.a+'/'+s.n+' ('+s.p+'%)');return '<li>'+s.d+' · '+s.l+' — <b>'+nota+'</b></li>';}).join("");
+  var f=window.DMAE_fraca?window.DMAE_fraca(arr):null;
+  var focoD=f?'<p class="dhint" style="margin:0 0 8px">🎯 Matéria mais fraca: <b>'+f.mat+'</b> ('+f.pct+'%) — foque nela.</p>':'';
+  host.innerHTML='<div class="dbest"><span class="dlbl">Melhor nota:</span> '+bestHTML+'</div>'+focoD+'<p class="dhint" style="margin:0 0 8px">Acompanhe a evolução das suas notas por simulado. Na prova do INSS, o que vale é o <b>líquido</b> (certos − errados).</p><ol class="dlast">'+last+'</ol><button class="btn ghost dclear" type="button">Limpar histórico</button>';
+  host.querySelector(".dclear").onclick=function(){try{localStorage.removeItem(window.DMAE_KEY("scores"));}catch(e){}window.renderDesempenho();};
+};
+
+(function(){
+  var box=document.getElementById("sim"),html="";
+  SIM.forEach(function(q,i){
+    if(q.b){html+='<div class="blocklabel">'+q.b+'</div>';}
+    if(q.passage){html+='<div class="passage">'+q.passage+'</div>';}
+    if(q.n){
+      html+='<div class="q" data-c="'+q.c+'" data-i="'+i+'" id="simq'+q.n+'"><div class="qn">Questão '+q.n+'</div><div class="qt">'+q.t+'</div>';
+      var ce=q.o.length<=2;
+      q.o.forEach(function(txt,j){
+        html+='<label class="opt"><input type="radio" name="q'+q.n+'" value="'+j+'">'+(ce?'':'<span class="lt">'+"ABCD"[j]+')</span>')+'<span>'+txt+'</span></label>';
+      });
+      html+='<div class="expl"><b>Gabarito: '+(ce?q.o[q.c]:"ABCD"[q.c]+'.')+'</b> '+q.e+'</div></div>';
+    }
+  });
+  box.innerHTML=html;
+  var total=SIM.filter(function(q){return q.n;}).length;
+  window.__SIM1=SIM.filter(function(q){return q.t;}).map(function(q){return {t:q.t,o:q.o,c:q.c,e:q.e};});
+
+  var LT="ABCD".split("");
+  document.getElementById("corrigir").onclick=function(){
+    var acertos=0, errs=[], cadErrs=[], pts=0, maxpts=0, byMat={}, curMat="";
+    SIM.forEach(function(q){
+      if(q.b){curMat=q.b.replace(/\s*\(.*\)\s*/,"").replace(/\s+[—-]\s.*$/,"").trim();return;}
+      if(!q.n)return;
+      var qd=document.getElementById('simq'+q.n);
+      if(!qd)return;
+      var opts=qd.querySelectorAll('.opt');
+      var sel=qd.querySelector('input:checked');
+      opts.forEach(function(o){o.classList.remove('right','wrong');});
+      if(opts[q.c])opts[q.c].classList.add('right');
+      var acertou=false;
+      if(sel){var v=+sel.value; if(v===q.c){acertos++;acertou=true;} else {opts[v].classList.add('wrong');}}
+      qd.querySelector('.expl').classList.add('show');
+      var w=/específ/i.test(curMat)?2:1; maxpts+=w; byMat[curMat]=byMat[curMat]||{ok:0,tot:0}; byMat[curMat].tot++;
+      if(acertou){pts+=w;byMat[curMat].ok++;}
+      if(!acertou){
+        errs.push({n:q.n,anchor:'simq'+q.n,qt:q.t,you:sel?LT[+sel.value]:'',correct:LT[q.c],expl:q.e});
+        cadErrs.push({label:"Simulado 1",t:q.t,o:q.o,c:q.c,e:q.e});
+      }
+    });
+    var pct=Math.round(acertos/total*100);
+    var erradas=errs.filter(function(x){return x.you;}).length; var brancos=total-acertos-erradas; var liq=acertos-erradas;
+    document.getElementById("scorebox").innerHTML='Acertos: <b>'+acertos+'</b> · Erros: <b>'+erradas+'</b> · Em branco: '+brancos+'.<br><b>Líquido (padrão Cebraspe: certos − errados) = '+liq+'</b>. Cada erro anula um acerto — na dúvida real, deixe em branco.';
+    window.renderErrPanel(document.getElementById("simulado"),document.querySelector("#simulado .simbar"),errs,total);
+    window.recordScore("sim1","Simulado 1",pct,acertos,total,null,null,byMat);
+    if(window.saveErrors)window.saveErrors(cadErrs);
+  };
+  document.getElementById("limpar").onclick=function(){
+    box.querySelectorAll('input:checked').forEach(function(i){i.checked=false;});
+    box.querySelectorAll('.opt').forEach(function(o){o.classList.remove('right','wrong');});
+    box.querySelectorAll('.expl').forEach(function(e){e.classList.remove('show');});
+    document.getElementById("scorebox").textContent='';
+    var ep=document.getElementById("simulado-errpanel"); if(ep)ep.parentNode.removeChild(ep);
+  };
+  window.attachTimer(document.querySelector("#simulado .simbar"),180);
+})();
+if(window.renderDesempenho)window.renderDesempenho();
+if(window.renderProxima)window.renderProxima();
+
+/* ---------- FLASHCARDS ---------- */
+var FC=[
+["Formato da prova INSS (Cebraspe)","Itens Certo/Errado; cada erro anula um acerto."],
+["Tripé da Seguridade (art. 194)","Saúde + Previdência + Assistência social."],
+["Saúde (art. 196)","Direito de todos, dever do Estado; independe de contribuição."],
+["Previdência (art. 201)","Contributiva e de filiação obrigatória."],
+["Assistência (art. 203)","A quem dela precisar; independe de contribuição (ex.: BPC)."],
+["Segurados obrigatórios","Empregado, doméstico, avulso, contribuinte individual, segurado especial."],
+["Segurado facultativo","Não exerce atividade remunerada; filia-se por opção (16 anos)."],
+["Segurado especial","Produtor rural/pescador artesanal em economia familiar."],
+["Dependentes - classes","I: cônjuge/filhos (presumida) - II: pais - III: irmãos. Classe I exclui as demais."],
+["Carência","Nº mínimo de contribuições. Aposentadorias = 180."],
+["Sem carência","Pensão por morte, salário-família, auxílio-acidente, incapacidade por acidente."],
+["Auxílio por incapacidade temporária","Antigo 'auxílio-doença'; após 15 dias é pago pelo INSS."],
+["Aposentadoria por incapacidade permanente","Antiga 'por invalidez'; enquanto durar a incapacidade."],
+["EC 103/2019","Reforma da Previdência: extinguiu a aposentadoria por tempo de contribuição pura."],
+["Salário-maternidade","Em regra 120 dias; cabe adoção; carência 10 (individual/facultativa)."],
+["Salário-família","Só para segurado de baixa renda, por filho < 14 ou inválido."],
+["BPC/LOAS","1 salário mínimo; idoso 65+ ou PcD em miséria; assistencial (sem contribuição)."],
+["Custeio (art. 195)","Financiado por toda a sociedade; incide sobre folha, receita e lucro."],
+["Salário de contribuição","Base sobre a qual o segurado contribui (diferente do salário de benefício)."],
+["INSS","Autarquia federal que opera o RGPS (reconhece e mantém benefícios)."],
+["RGPS x RPPS","RGPS = INSS (trabalhadores em geral); RPPS = servidores efetivos."],
+["Período de graça","Mantém a qualidade de segurado por um tempo sem contribuir."],
+["Negação de 'se p então q'","'p e não q' (equivalente = contrapositiva '~q->~p')."],
+["Tabela-verdade","2 elevado a n linhas (n = proposições simples diferentes)."],
+["O que NÃO é proposição","Pergunta, exclamação, ordem e sentença aberta."],
+["LIMPE","Legalidade, Impessoalidade, Moralidade, Publicidade, Eficiência (art. 37)."],
+["Anulação x revogação","Anula ato ilegal (retroage); revoga ato legal inoportuno (efeito futuro)."],
+["Crase - teste","Troque por masculino: deu 'ao' = tem crase."],
+["Ransomware / defesa","Criptografa e pede resgate; defesa = backup offline + 2 fatores."],
+["Estratégia Cebraspe","Na dúvida real, deixe em branco (não anula). Cuidado com 'sempre/somente'."]
+];
+(function(){
+  var box=document.getElementById("fcs"); if(!box||typeof FC==="undefined")return;
+  function K(){return window.DMAE_KEY("fcsrs");}
+  function readSt(){try{return JSON.parse(localStorage.getItem(K())||"{}");}catch(e){return {};}}
+  function writeSt(s){try{localStorage.setItem(K(),JSON.stringify(s));}catch(e){} if(window.DMAE_syncPush)window.DMAE_syncPush();}
+  var INT=[0,1,3,7,21], DAY=86400000;
+  var order=FC.map(function(_,i){return i;}), mode="todos", allOpen=false;
+  function due(idx,st){var c=st[idx];return !c || (c.due||0)<=Date.now();}
+  function boxOf(idx,st){return (st[idx]&&st[idx].box)||1;}
+  function render(){
+    var st=readSt();
+    var arr=order.filter(function(idx){return mode==="hoje"?due(idx,st):true;});
+    if(mode==="hoje"&&!arr.length){
+      box.innerHTML='<div class="errpanel zero"><h4>Tudo revisado por hoje! 🎉</h4><p>Nenhum cartão vencido. Volte amanhã ou toque em “Ver todos” para revisar mesmo assim.</p></div>';
+    } else {
+      box.innerHTML=arr.map(function(idx,pos){
+        var b=boxOf(idx,st);
+        return '<div class="fc" data-i="'+idx+'"><div class="fn">Flashcard '+(pos+1)+' · caixa '+b+'/5</div><div class="fq">'+FC[idx][0]+'</div><div class="fa">'+FC[idx][1]+'<div class="srs"><button type="button" class="btn ghost srs-no">Não sei ↺</button><button type="button" class="btn srs-yes">Sei ✓</button></div></div><div class="hint">toque para ver a resposta</div></div>';
+      }).join("");
+    }
+    var due0=order.filter(function(idx){return due(idx,st);}).length;
+    var cc=document.getElementById("fc-count"); if(cc)cc.textContent=FC.length+' cartões · '+due0+' para revisar hoje';
+  }
+  render();
+  box.addEventListener("click",function(e){
+    var y=e.target.closest(".srs-yes"), n=e.target.closest(".srs-no");
+    if(y||n){
+      e.stopPropagation();
+      var card=(y||n).closest(".fc"); if(!card)return;
+      var idx=+card.getAttribute("data-i");
+      var st=readSt(); var c=st[idx]||{box:1};
+      if(y){c.box=Math.min(5,(c.box||1)+1);} else {c.box=1;}
+      c.due=Date.now()+INT[c.box-1]*DAY; st[idx]=c; writeSt(st);
+      render(); return;
+    }
+    var fc=e.target.closest(".fc"); if(fc)fc.classList.toggle("open");
+  });
+  var sh=document.getElementById("fc-shuffle");
+  if(sh)sh.onclick=function(){for(var i=order.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=order[i];order[i]=order[j];order[j]=t;}render();};
+  var al=document.getElementById("fc-all");
+  if(al)al.onclick=function(){allOpen=!allOpen;box.querySelectorAll(".fc").forEach(function(c){c.classList.toggle("open",allOpen);});};
+  if(sh&&sh.parentNode){
+    var rb=document.createElement("button"); rb.type="button"; rb.className="btn ghost"; rb.id="fc-today"; rb.textContent="Revisar hoje";
+    sh.parentNode.insertBefore(rb,sh);
+    rb.onclick=function(){mode=(mode==="hoje"?"todos":"hoje"); rb.textContent=(mode==="hoje"?"Ver todos":"Revisar hoje"); render();};
+  }
+  window.DMAE_fcApply=render;
+})();
+</script>
+<script>
+/* ===== Motor genérico de provas/treinos (aula + questões + correção) ===== */
+(function(){
+  var L="ABCD".split("");
+  function qHTML(q,n){
+    var h='<div class="q" data-c="'+q.c+'"><div class="qn">'+(q.label?q.label:('Questão '+n))+'</div><div class="qt">'+q.t+'</div>';
+    var ce=q.o.length<=2;
+    for(var j=0;j<q.o.length;j++){h+='<label class="opt"><input type="radio">'+(ce?'':'<span class="lt">'+L[j]+')</span>')+'<span>'+q.o[j]+'</span></label>';}
+    h+='<div class="expl"><b>Gabarito: '+(ce?q.o[q.c]:L[q.c]+'.')+'</b> '+q.e+'</div></div>';
+    return h;
+  }
+  function wire(host){
+    var qs=[].slice.call(host.querySelectorAll(".q"));
+    qs.forEach(function(qd,i){qd.id=host.id+"_q"+(i+1);[].forEach.call(qd.querySelectorAll("input"),function(inp){inp.name=host.id+"_"+i;});});
+    var mats=[],curMat="";
+    [].forEach.call(host.children,function(ch){
+      if(ch.classList&&ch.classList.contains("blocklabel"))curMat=ch.textContent.replace(/\s*\(.*\)\s*/,"").replace(/\s+[—-]\s.*$/,"").trim();
+      else if(ch.classList&&ch.classList.contains("q"))mats.push(curMat);
+    });
+    var structured=false;
+    var b=document.createElement("div"); b.className="simbar";
+    b.innerHTML='<button class="btn cor">Corrigir</button><button class="btn ghost lim">Limpar</button><span class="score sc" aria-live="polite"></span>';
+    host.appendChild(b);
+    var isSim=host.id.indexOf("quiz-")===0;
+    var simLabel=host.id==="quiz-aleatorio"?"Simulado aleatório":"Simulado "+host.id.replace("quiz-sim","");
+    if(isSim)window.attachTimer(b,180);
+    b.querySelector(".cor").onclick=function(){
+      var ac=0, errs=[], cadErrs=[], pts=0, maxpts=0, byMat={};
+      var card=host.closest(".card"), cardh3=card&&card.querySelector("h3");
+      var lbl=isSim?simLabel:(cardh3?cardh3.textContent.replace("Aula + treino: ",""):"Treino");
+      qs.forEach(function(qd,i){
+        var opts=qd.querySelectorAll(".opt"), ins=qd.querySelectorAll("input"), c=+qd.getAttribute("data-c");
+        var sel=qd.querySelector("input:checked");
+        [].forEach.call(opts,function(o){o.classList.remove("right","wrong");});
+        if(opts[c])opts[c].classList.add("right");
+        var acertou=false, v=-1;
+        if(sel){v=[].indexOf.call(ins,sel); if(v===c){ac++;acertou=true;} else if(opts[v])opts[v].classList.add("wrong");}
+        qd.querySelector(".expl").classList.add("show");
+        var mk=mats[i]||"?";byMat[mk]=byMat[mk]||{ok:0,tot:0};byMat[mk].tot++;if(acertou){byMat[mk].ok++;}
+        if(!acertou){
+          var expl=qd.querySelector(".expl").innerHTML.replace(/^\s*<b>.*?<\/b>\s*/,"");
+          errs.push({n:i+1,anchor:qd.id,qt:qd.querySelector(".qt").innerHTML,you:v>=0?L[v]:"",correct:L[c],expl:expl});
+          var oarr=[].map.call(opts,function(o){var sp=o.querySelectorAll("span");return sp[sp.length-1].innerHTML;});
+          cadErrs.push({label:lbl,t:qd.querySelector(".qt").innerHTML,o:oarr,c:c,e:expl});
+        }
+      });
+      var pct=Math.round(ac/qs.length*100);
+      var liq=ac-errs.filter(function(x){return x.you;}).length;
+      var msg=pct>=70?"Ótimo!":pct>=50?"Bom — revise os erros abaixo.":"Releia a aula e veja os erros abaixo.";
+      b.querySelector(".sc").innerHTML="Acertos: <b>"+ac+"</b>/"+qs.length+" ("+pct+"%) · líquido (padrão Cebraspe) <b>"+liq+"</b>. "+msg;
+      window.renderErrPanel(host,b,errs,qs.length);
+      if(isSim)window.recordScore(host.id,simLabel,pct,ac,qs.length,null,null,byMat);
+      if(host.id!=="caderno-list"&&window.saveErrors)window.saveErrors(cadErrs);
+    };
+    b.querySelector(".lim").onclick=function(){
+      host.querySelectorAll("input:checked").forEach(function(i){i.checked=false;});
+      host.querySelectorAll(".opt").forEach(function(o){o.classList.remove("right","wrong");});
+      host.querySelectorAll(".expl").forEach(function(e){e.classList.remove("show");});
+      b.querySelector(".sc").textContent="";
+      var ep=document.getElementById(host.id+"-errpanel"); if(ep)ep.parentNode.removeChild(ep);
+    };
+  }
+  function mountList(host,items){ // items: {b},{passage},{t,o,c,e}
+    var h="",n=0;
+    items.forEach(function(q){
+      if(q.b)h+='<div class="blocklabel">'+q.b+'</div>';
+      if(q.passage)h+='<div class="passage">'+q.passage+'</div>';
+      if(q.t){n++;h+=qHTML(q,n);}
+    });
+    host.innerHTML=h; wire(host);
+  }
+  function mountQs(host,qs){var h="";qs.forEach(function(q,i){h+=qHTML(q,i+1);});host.innerHTML=h;wire(host);}
+
+  /* ===== Caderno de erros (salvo no navegador) ===== */
+  window.saveErrors=function(list){
+    if(!list||!list.length)return;
+    var K=window.DMAE_KEY("cadernoerros"),arr=[];
+    try{arr=JSON.parse(localStorage.getItem(K)||"[]");}catch(e){}
+    var seen={};arr.forEach(function(x){seen[x.id]=1;});
+    list.forEach(function(it){
+      var id=it.t;
+      if(!seen[id]){arr.push({id:id,label:it.label,t:it.t,o:it.o,c:it.c,e:it.e});seen[id]=1;}
+    });
+    if(arr.length>200)arr=arr.slice(-200);
+    try{localStorage.setItem(K,JSON.stringify(arr));}catch(e){}
+    if(window.renderCaderno)window.renderCaderno();
+    if(window.DMAE_syncPush)window.DMAE_syncPush();
+  };
+  window.renderCaderno=function(){
+    var host=document.getElementById("caderno-list");if(!host)return;
+    var arr=[];try{arr=JSON.parse(localStorage.getItem(window.DMAE_KEY("cadernoerros"))||"[]");}catch(e){}
+    var cnt=document.getElementById("cad-count");if(cnt)cnt.textContent=arr.length?("· "+arr.length):"";
+    if(!arr.length){host.innerHTML='<p class="dhint">Seu caderno está vazio. Assim que você errar questões nos simulados ou treinos, elas aparecem aqui para você refazer.</p>';if(window.renderProxima)window.renderProxima();return;}
+    mountQs(host,arr);
+    if(window.renderProxima)window.renderProxima();
+  };
+  (function(){
+    var rm=document.getElementById("cad-remove"),cl=document.getElementById("cad-clear");
+    if(rm)rm.onclick=function(){
+      var arr=[];try{arr=JSON.parse(localStorage.getItem(window.DMAE_KEY("cadernoerros"))||"[]");}catch(e){}
+      var qs=document.querySelectorAll("#caderno-list .q");
+      if(!arr.length||qs.length!==arr.length){window.renderCaderno();return;}
+      var keep=[];
+      [].forEach.call(qs,function(qd,i){
+        var ins=qd.querySelectorAll("input"),sel=qd.querySelector("input:checked");
+        var ok=sel&&[].indexOf.call(ins,sel)===+qd.getAttribute("data-c");
+        if(!ok)keep.push(arr[i]);
+      });
+      try{localStorage.setItem(window.DMAE_KEY("cadernoerros"),JSON.stringify(keep));}catch(e){}
+      window.renderCaderno();
+      if(window.DMAE_syncPush)window.DMAE_syncPush();
+      var host=document.getElementById("caderno");if(host)host.scrollIntoView({behavior:"smooth",block:"start"});
+    };
+    if(cl)cl.onclick=function(){
+      if(!confirm("Apagar todas as questões do caderno de erros?"))return;
+      try{localStorage.removeItem(window.DMAE_KEY("cadernoerros"));}catch(e){}
+      window.renderCaderno();
+      if(window.DMAE_syncPush)window.DMAE_syncPush();
+    };
+    var dl=document.getElementById("cad-download");
+    if(dl)dl.onclick=function(){
+      var arr=[];try{arr=JSON.parse(localStorage.getItem(window.DMAE_KEY("cadernoerros"))||"[]");}catch(e){}
+      if(!arr.length){alert("Seu caderno está vazio — faça um simulado ou treino primeiro.");return;}
+      var LL="ABCD".split("");
+      var body=arr.map(function(q,i){
+        var opts=q.o.map(function(o,j){return '<div>'+(q.o.length<=2?'':LL[j]+') ')+o+'</div>';}).join("");
+        return '<div class="q"><p><b>'+(i+1)+'. ['+q.label+']</b> '+q.t+'</p><div class="o">'+opts+'</div><div class="a"><b>Gabarito: '+(q.o.length<=2?q.o[q.c]:LL[q.c]+'.')+'</b> '+q.e+'</div></div>';
+      }).join("");
+      var html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Caderno de erros - INSS 2026</title>'
+        +'<style>body{font-family:Arial,Helvetica,sans-serif;max-width:820px;margin:24px auto;padding:0 18px;color:#111;line-height:1.5}'
+        +'h1{font-size:20px} .q{border-bottom:1px solid #ccc;padding:12px 0} .o div{margin:2px 0} '
+        +'.a{background:#eef2f4;padding:8px 10px;border-radius:6px;margin-top:6px;font-size:14px}</style></head>'
+        +'<body><h1>Meu caderno de erros — INSS 2026 ('+arr.length+' questões)</h1>'
+        +'<p>Refaça cada uma tapando o gabarito; leia a explicação só depois de responder.</p>'+body+'</body></html>';
+      try{
+        var blob=new Blob([html],{type:"text/html;charset=utf-8"});
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement("a");a.href=url;a.download="caderno-de-erros-dmae.html";
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        setTimeout(function(){URL.revokeObjectURL(url);},3000);
+      }catch(e){alert("Não foi possível baixar neste navegador.");}
+    };
+    window.renderCaderno();
+  })();
+
+  /* ===================== SIMULADO 2 ===================== */
+  var SIM2=[
+{b:"Conhecimentos Básicos"},
+{t:"(Português) “Fazem cinco anos que ele contribui” está correta.",o:["Certo","Errado"],c:1,e:"“Fazer” indicando tempo é impessoal: “Faz cinco anos”."},
+{t:"(Português) A oração adjetiva explicativa vem entre vírgulas e se refere a todo o antecedente.",o:["Certo","Errado"],c:0,e:"Explicativa (com vírgula) = todos; restritiva (sem vírgula) = parte."},
+{t:"(RLM) A negação de “Se p, então q” é “p e não q”.",o:["Certo","Errado"],c:0,e:"~(p→q) = p ∧ ~q."},
+{t:"(RLM) A disjunção “p ou q” (inclusiva) é falsa apenas quando p e q são ambas falsas.",o:["Certo","Errado"],c:0,e:"Tabela-verdade do “ou” inclusivo."},
+{t:"(Informática) Phishing é uma técnica de engenharia social para enganar o usuário e obter dados.",o:["Certo","Errado"],c:0,e:"Phishing induz a pessoa a fornecer credenciais/dados."},
+{t:"(Ética) A impessoalidade exige que o servidor favoreça amigos quando possível.",o:["Certo","Errado"],c:1,e:"Impessoalidade é o oposto: tratar todos igualmente."},
+{b:"Conhecimentos Específicos — Previdenciário"},
+{t:"(Previdenciário) São segurados obrigatórios: empregado, empregado doméstico, trabalhador avulso, contribuinte individual e segurado especial.",o:["Certo","Errado"],c:0,e:"Rol dos segurados obrigatórios do RGPS."},
+{t:"(Previdenciário) O segurado especial é o produtor rural, o pescador artesanal e o indígena que exercem atividade em regime de economia familiar.",o:["Certo","Errado"],c:0,e:"Conceito de segurado especial."},
+{t:"(Previdenciário) A qualidade de segurado é mantida por certo período mesmo sem contribuição (período de graça).",o:["Certo","Errado"],c:0,e:"Período de graça mantém a qualidade de segurado."},
+{t:"(Previdenciário) A carência é o número mínimo de contribuições mensais para ter direito a determinado benefício.",o:["Certo","Errado"],c:0,e:"Definição de carência (art. 24, Lei 8.213/91)."},
+{t:"(Previdenciário) O salário-família é devido a qualquer segurado, independentemente da renda.",o:["Certo","Errado"],c:1,e:"É devido ao segurado de BAIXA RENDA, por filho menor de 14 anos ou inválido."},
+{t:"(Previdenciário) O salário-maternidade pode ser devido em caso de adoção.",o:["Certo","Errado"],c:0,e:"É devido também à segurada/segurado que adota."},
+{t:"(Previdenciário) O auxílio por incapacidade temporária é devido ao segurado incapaz por mais de 15 dias consecutivos.",o:["Certo","Errado"],c:0,e:"Após 15 dias, o benefício é pago pelo INSS (empregado: os 15 primeiros dias são do empregador)."},
+{t:"(Previdenciário) A aposentadoria por incapacidade permanente é devida enquanto o segurado permanecer incapaz para o trabalho.",o:["Certo","Errado"],c:0,e:"Antiga aposentadoria por invalidez; cessa se recuperar a capacidade."},
+{b:"Assistência e Custeio"},
+{t:"(Assistência) O BPC garante um salário mínimo mensal ao idoso ou à pessoa com deficiência em situação de miséria.",o:["Certo","Errado"],c:0,e:"BPC/LOAS: 1 salário mínimo, assistencial."},
+{t:"(Assistência) O idoso, para o BPC, deve ter 60 anos ou mais.",o:["Certo","Errado"],c:1,e:"Para o BPC, a idade é 65 anos ou mais."},
+{t:"(Custeio) O salário de contribuição é a base sobre a qual incidem as contribuições previdenciárias do segurado.",o:["Certo","Errado"],c:0,e:"Conceito de salário de contribuição (Lei 8.212/91)."},
+{t:"(Constitucional) A seguridade social será financiada por toda a sociedade, mediante recursos dos orçamentos e de contribuições sociais.",o:["Certo","Errado"],c:0,e:"Art. 195 da CF."},
+{t:"(Previdenciário) A previdência social é organizada sob a forma de regime não contributivo.",o:["Certo","Errado"],c:1,e:"O RGPS é CONTRIBUTIVO (art. 201, CF)."}
+];
+  mountList(document.getElementById("quiz-sim2"),SIM2);
+
+  /* ===================== SIMULADO 3 ===================== */
+  var SIM3=[
+{b:"Conhecimentos Básicos"},
+{t:"(Português) Em “Assisti ao atendimento”, a regência do verbo assistir está correta.",o:["Certo","Errado"],c:0,e:"“Assistir” (presenciar) é transitivo indireto: assistir A algo."},
+{t:"(Português) “Houveram atrasos no pagamento dos benefícios” está correta.",o:["Certo","Errado"],c:1,e:"“Haver” = existir é impessoal → “Houve atrasos”."},
+{t:"(RLM) A negação de “Algum segurado é aposentado” é “nenhum segurado é aposentado”.",o:["Certo","Errado"],c:0,e:"Negar o existencial (“algum”) leva ao “nenhum”."},
+{t:"(RLM) “Se p então q” é logicamente equivalente a “se q então p”.",o:["Certo","Errado"],c:1,e:"O equivalente é a contrapositiva (~q→~p), não a recíproca."},
+{t:"(Informática) No Excel, a função =SOMA(A1:A10) calcula a média dos valores.",o:["Certo","Errado"],c:1,e:"=SOMA soma; a média é =MÉDIA."},
+{t:"(Constitucional) A casa é asilo inviolável; de dia, o ingresso sem consentimento exige ordem judicial.",o:["Certo","Errado"],c:0,e:"Art. 5º, XI, da CF."},
+{b:"Conhecimentos Específicos — Previdenciário"},
+{t:"(Previdenciário) O dependente inválido pode ser considerado dependente independentemente da idade.",o:["Certo","Errado"],c:0,e:"A invalidez afasta o limite de idade para a dependência."},
+{t:"(Previdenciário) A dependência econômica do cônjuge e dos filhos menores é presumida.",o:["Certo","Errado"],c:0,e:"Classe I: dependência econômica presumida."},
+{t:"(Previdenciário) O período de graça nunca ultrapassa 12 meses, em qualquer hipótese.",o:["Certo","Errado"],c:1,e:"Pode ser prorrogado (ex.: para 24 ou 36 meses) em situações previstas em lei."},
+{t:"(Previdenciário) Salário-família e pensão por morte independem de carência.",o:["Certo","Errado"],c:0,e:"Ambos não exigem carência."},
+{t:"(Previdenciário) A aposentadoria programada (por idade), em regra, exige carência de 180 contribuições.",o:["Certo","Errado"],c:0,e:"Carência de 180 contribuições para aposentadorias programadas."},
+{t:"(Previdenciário) O auxílio-acidente tem natureza indenizatória e é pago quando restam sequelas que reduzem a capacidade de trabalho.",o:["Certo","Errado"],c:0,e:"Auxílio-acidente é indenizatório."},
+{t:"(Previdenciário) O trabalhador avulso presta serviço a diversas empresas, sem vínculo empregatício, com intermediação do sindicato ou do órgão gestor de mão de obra.",o:["Certo","Errado"],c:0,e:"Conceito de trabalhador avulso."},
+{t:"(Previdenciário) Menor de 16 anos pode filiar-se ao RGPS como segurado facultativo.",o:["Certo","Errado"],c:1,e:"A filiação como facultativo exige 16 anos completos."},
+{b:"Constitucional / Assistência"},
+{t:"(Constitucional) São objetivos da assistência social a proteção à família, à maternidade, à infância e à velhice.",o:["Certo","Errado"],c:0,e:"Art. 203 da CF."},
+{t:"(Constitucional) A saúde integra a seguridade social.",o:["Certo","Errado"],c:0,e:"Art. 194 — saúde, previdência e assistência."},
+{t:"(Previdenciário) A EC 103/2019 unificou idade e tempo de contribuição em regra permanente para novos segurados.",o:["Certo","Errado"],c:0,e:"A Reforma trouxe requisitos de idade + tempo mínimo de contribuição."},
+{t:"(Previdenciário) O segurado que perde a qualidade de segurado perde imediatamente todo direito adquirido a benefício já concedido.",o:["Certo","Errado"],c:1,e:"Direito já adquirido/benefício concedido não se perde pela perda da qualidade de segurado."},
+{t:"(Custeio) A contribuição do empregado é descontada e recolhida pelo empregador.",o:["Certo","Errado"],c:0,e:"O empregador desconta e recolhe (responsabilidade)."}
+];
+  mountList(document.getElementById("quiz-sim3"),SIM3);
+
+  /* ===================== SIMULADO 4 ===================== */
+  var SIM4=[
+{b:"Conhecimentos Básicos"},
+{t:"(Português) Numa questão da Cebraspe, um item com uma parte certa e uma parte errada deve ser julgado Errado.",o:["Certo","Errado"],c:0,e:"Basta uma parte errada para o item ser Errado."},
+{t:"(Português) “Precisa-se de servidores” está correta (verbo no singular).",o:["Certo","Errado"],c:0,e:"“Precisa-se de” — sujeito indeterminado, verbo no singular."},
+{t:"(RLM) A conjunção “p e q” é verdadeira somente quando ambas são verdadeiras.",o:["Certo","Errado"],c:0,e:"Tabela-verdade do “e”."},
+{t:"(RLM) Uma sentença aberta (com variável sem valor) é uma proposição lógica.",o:["Certo","Errado"],c:1,e:"Sentença aberta não tem valor lógico definido — não é proposição."},
+{t:"(Informática) A autenticação em dois fatores aumenta a segurança do acesso.",o:["Certo","Errado"],c:0,e:"Exige um segundo fator além da senha."},
+{t:"(Ética) O Código de Ética do servidor federal foi aprovado pelo Decreto 1.171/1994.",o:["Certo","Errado"],c:0,e:"Dec. 1.171/94."},
+{b:"Conhecimentos Específicos — Previdenciário"},
+{t:"(Previdenciário) A previdência social atende, entre outros, à cobertura dos eventos de incapacidade, idade avançada e morte.",o:["Certo","Errado"],c:0,e:"Art. 201 da CF — riscos cobertos."},
+{t:"(Previdenciário) O salário-maternidade tem duração, em regra, de 120 dias.",o:["Certo","Errado"],c:0,e:"Em regra, 120 dias."},
+{t:"(Previdenciário) A pensão por morte é devida ao conjunto dos dependentes do segurado falecido.",o:["Certo","Errado"],c:0,e:"Rateada entre os dependentes da mesma classe."},
+{t:"(Previdenciário) Contribuinte individual e segurado facultativo são a mesma categoria.",o:["Certo","Errado"],c:1,e:"São categorias diferentes: o individual exerce atividade por conta própria; o facultativo não exerce atividade remunerada."},
+{t:"(Previdenciário) O reconhecimento inicial dos benefícios do RGPS compete ao INSS.",o:["Certo","Errado"],c:0,e:"O INSS opera o Regime Geral (reconhecimento e manutenção de benefícios)."},
+{t:"(Previdenciário) A carência para o salário-maternidade da contribuinte individual é de 10 contribuições mensais.",o:["Certo","Errado"],c:0,e:"10 contribuições para individual/facultativa."},
+{t:"(Previdenciário) O auxílio por incapacidade temporária é vitalício.",o:["Certo","Errado"],c:1,e:"É temporário: cessa com a recuperação ou se converte em aposentadoria por incapacidade permanente."},
+{t:"(Assistência) O BPC pode ser acumulado com aposentadoria do RGPS.",o:["Certo","Errado"],c:1,e:"O BPC, em regra, NÃO é acumulável com outro benefício da seguridade (salvo assistência médica e pensões especiais)."},
+{b:"Constitucional / Custeio"},
+{t:"(Constitucional) É objetivo da seguridade social a universalidade da cobertura e do atendimento.",o:["Certo","Errado"],c:0,e:"Art. 194, parágrafo único, I."},
+{t:"(Constitucional) A irredutibilidade do valor dos benefícios é princípio da seguridade social.",o:["Certo","Errado"],c:0,e:"Art. 194, IV."},
+{t:"(Custeio) As contribuições sociais incidem, entre outras bases, sobre a folha de salários, a receita/faturamento e o lucro.",o:["Certo","Errado"],c:0,e:"Art. 195, I, da CF."},
+{t:"(Previdenciário) O regime próprio de previdência (RPPS) dos servidores é o mesmo regime operado pelo INSS.",o:["Certo","Errado"],c:1,e:"O INSS opera o RGPS; o RPPS é dos servidores públicos titulares de cargo efetivo."},
+{t:"(Previdenciário) A filiação ao RGPS decorre automaticamente do exercício de atividade remunerada para o segurado obrigatório.",o:["Certo","Errado"],c:0,e:"Para o obrigatório, a filiação decorre do exercício da atividade."}
+];
+  mountList(document.getElementById("quiz-sim4"),SIM4);
+
+  /* ===================== TREINOS (aula + questões) ===================== */
+  var TREINOS=[
+  {mat:"Português",titulo:"Aula + treino: interpretação e reescrita (jeito Cebraspe)",aula:"A Cebraspe adora <b>reescrever</b> uma frase e perguntar se o <b>sentido foi mantido</b>. O segredo é o <b>conectivo</b>: mas=oposição, portanto=conclusão, porque=causa, embora=concessão, se=condição. E na interpretação, a resposta certa está <b>ancorada no texto</b> — não no que você acha.",qs:[
+    {t:"Trocar “Ele recorreu porque foi negado o benefício” por “Ele recorreu, embora tenha sido negado o benefício” mantém o sentido.",o:["Certo","Errado"],c:1,e:"Causa (porque) vira concessão (embora) — muda o sentido."},
+    {t:"Na interpretação, uma alternativa pode ser verdadeira no mundo real e, ainda assim, errada por não estar apoiada no texto.",o:["Certo","Errado"],c:0,e:"Interpretação se prende ao texto."},
+    {t:"Um item que traz uma parte correta e outra incorreta deve ser julgado errado.",o:["Certo","Errado"],c:0,e:"Basta uma parte errada."},
+    {t:"“Portanto” é um conectivo que exprime conclusão.",o:["Certo","Errado"],c:0,e:"Portanto/logo = conclusão."}
+  ]},
+  {mat:"Português",titulo:"Aula + treino: crase e concordância",aula:"<b>Crase</b>: acento no “a” quando há preposição + artigo feminino; teste do “ao” (se vira “ao”, tem crase). <b>Concordância</b>: verbos <i>haver</i> (existir) e <i>fazer</i> (tempo) são impessoais → singular. <i>Existir</i> concorda.",qs:[
+    {t:"Em “Compareceu à perícia médica”, a crase está corretamente empregada.",o:["Certo","Errado"],c:0,e:"“Comparecer a” + “a perícia” (fem.) = à."},
+    {t:"A frase “Houveram muitos pedidos de aposentadoria” está correta.",o:["Certo","Errado"],c:1,e:"“Haver” = existir é impessoal → “Houve muitos pedidos”."},
+    {t:"Não há crase antes de palavra masculina nem de verbo.",o:["Certo","Errado"],c:0,e:"Regra da crase."},
+    {t:"“Existem requerimentos pendentes” está correta quanto à concordância.",o:["Certo","Errado"],c:0,e:"“Existir” tem sujeito e concorda (plural)."}
+  ]},
+  {mat:"Raciocínio Lógico",titulo:"Aula + treino: proposições, negações e equivalências",aula:"Conectivos: <b>e</b> (só V se ambos), <b>ou</b> (F só se ambos F), <b>se...então</b> (F só quando 1º V e 2º F). <b>~(p→q)=p∧~q</b>. Equivalente de “p→q” = contrapositiva “~q→~p”. Negar “todo” vira “existe um que não”.",qs:[
+    {t:"A negação de “Se contribuiu, então tem carência” é “contribuiu e não tem carência”.",o:["Certo","Errado"],c:0,e:"~(p→q)=p∧~q."},
+    {t:"“Se p então q” é equivalente a “se q então p”.",o:["Certo","Errado"],c:1,e:"Equivalente é a contrapositiva, não a recíproca."},
+    {t:"A negação de “Todo segurado é filiado” é “nenhum segurado é filiado”.",o:["Certo","Errado"],c:1,e:"A negação de “todo A é B” é “existe A que não é B”."},
+    {t:"A disjunção “p ou q” é falsa somente quando p e q são ambas falsas.",o:["Certo","Errado"],c:0,e:"Tabela-verdade do “ou” inclusivo."}
+  ]},
+  {mat:"Raciocínio Lógico",titulo:"Aula + treino: proposição, sentença aberta e tabela-verdade",aula:"<b>Proposição</b> é frase declarativa com valor V ou F. <b>Não são</b> proposições: perguntas, exclamações, ordens (imperativo) e <b>sentenças abertas</b> (com variável/termo indefinido). Nº de linhas da tabela-verdade = <b>2ⁿ</b> (n = proposições simples diferentes).",qs:[
+    {t:"A frase “Requeira já o seu benefício!” é uma proposição lógica.",o:["Certo","Errado"],c:1,e:"Imperativa (ordem) — não é proposição."},
+    {t:"Uma proposição com 4 proposições simples diferentes tem tabela-verdade de 16 linhas.",o:["Certo","Errado"],c:0,e:"2⁴ = 16."},
+    {t:"A sentença “x + 2 = 5” (sem valor de x) é uma proposição lógica.",o:["Certo","Errado"],c:1,e:"Sentença aberta não tem valor definido — não é proposição."},
+    {t:"“O INSS é uma autarquia federal” é uma proposição lógica.",o:["Certo","Errado"],c:0,e:"Declarativa, com valor definido (Verdadeira)."}
+  ]},
+  {mat:"Informática",titulo:"Aula + treino: segurança da informação",aula:"Pilares: <b>confidencialidade, integridade e disponibilidade</b>. Malwares: vírus (precisa de hospedeiro), worm (se espalha sozinho), trojan (finge ser útil), <b>ransomware</b> (criptografa e pede resgate). <b>Phishing</b> = engenharia social. Defesas: senha forte, 2 fatores, antivírus, firewall e <b>backup</b>.",qs:[
+    {t:"Ransomware criptografa os dados da vítima e costuma exigir resgate.",o:["Certo","Errado"],c:0,e:"Definição de ransomware."},
+    {t:"Vírus e worm são exatamente a mesma coisa.",o:["Certo","Errado"],c:1,e:"Vírus precisa de hospedeiro; worm se autopropaga."},
+    {t:"A autenticação em dois fatores aumenta a segurança do acesso.",o:["Certo","Errado"],c:0,e:"Exige um 2º fator além da senha."},
+    {t:"Backup offline ajuda a recuperar dados após um ataque de ransomware.",o:["Certo","Errado"],c:0,e:"Permite restaurar sem pagar resgate."}
+  ]},
+  {mat:"Ética",titulo:"Aula + treino: ética no serviço público (Dec. 1.171/94)",aula:"Ética pública é agir com honestidade e impessoalidade, mesmo sem fiscalização. O <b>Código de Ética (Decreto 1.171/1994)</b> traz deveres e vedações do servidor federal; a <b>publicidade</b> é dever (transparência), e o servidor não pode usar o cargo em proveito próprio.",qs:[
+    {t:"No serviço público, um ato pode ser legal e, ainda assim, antiético.",o:["Certo","Errado"],c:0,e:"Legalidade ≠ moralidade."},
+    {t:"O Código de Ética do servidor público federal foi aprovado pelo Decreto 1.171/1994.",o:["Certo","Errado"],c:0,e:"Dec. 1.171/94."},
+    {t:"É permitido ao servidor usar o cargo para obter vantagem pessoal.",o:["Certo","Errado"],c:1,e:"É vedado; fere a moralidade e a impessoalidade."},
+    {t:"A cortesia e a presteza no atendimento são deveres do servidor.",o:["Certo","Errado"],c:0,e:"Deveres éticos."}
+  ]},
+  {mat:"Direito Constitucional",titulo:"Aula + treino: Seguridade Social na Constituição (arts. 194–204)",aula:"A <b>seguridade social</b> (art. 194) é o conjunto de ações de <b>Saúde + Previdência + Assistência</b>. <b>Saúde</b> (196): direito de todos, independe de contribuição. <b>Previdência</b> (201): contributiva e de filiação obrigatória. <b>Assistência</b> (203): a quem dela precisar, independe de contribuição.",qs:[
+    {t:"A seguridade social compreende saúde, previdência social e assistência social.",o:["Certo","Errado"],c:0,e:"Art. 194 da CF."},
+    {t:"A previdência social tem caráter contributivo e filiação obrigatória.",o:["Certo","Errado"],c:0,e:"Art. 201."},
+    {t:"A assistência social só é prestada a quem contribuiu para a previdência.",o:["Certo","Errado"],c:1,e:"Art. 203: independe de contribuição."},
+    {t:"A saúde é direito de todos e dever do Estado.",o:["Certo","Errado"],c:0,e:"Art. 196."}
+  ]},
+  {mat:"Direito Administrativo",titulo:"Aula + treino: princípios (LIMPE) e atos",aula:"A Administração segue o <b>LIMPE</b> (Legalidade, Impessoalidade, Moralidade, Publicidade, Eficiência). O servidor só faz o que a lei autoriza. <b>Anular</b> = desfazer ato ilegal (efeito retroativo); <b>revogar</b> = desfazer ato legal inconveniente (efeito futuro).",qs:[
+    {t:"Pelo princípio da legalidade, o servidor só pode fazer o que a lei autoriza.",o:["Certo","Errado"],c:0,e:"Legalidade administrativa."},
+    {t:"A anulação de um ato administrativo produz efeitos retroativos (ex tunc).",o:["Certo","Errado"],c:0,e:"Anulação = ilegalidade, retroage."},
+    {t:"A revogação atinge ato ilegal.",o:["Certo","Errado"],c:1,e:"Revogação atinge ato LEGAL inconveniente; a anulação é que atinge o ilegal."},
+    {t:"A publicidade dos atos administrativos é a regra, salvo sigilo previsto em lei.",o:["Certo","Errado"],c:0,e:"Princípio da publicidade."}
+  ]},
+  {mat:"Direito Previdenciário",titulo:"Aula + treino: seguridade e princípios",aula:"A <b>seguridade social</b> se financia por <b>toda a sociedade</b> (art. 195). Princípios (art. 194): universalidade da cobertura; uniformidade urbano/rural; seletividade e distributividade; irredutibilidade do valor dos benefícios; equidade no custeio; diversidade da base de financiamento; caráter democrático da gestão.",qs:[
+    {t:"A seguridade social é financiada por toda a sociedade, de forma direta e indireta.",o:["Certo","Errado"],c:0,e:"Art. 195 da CF."},
+    {t:"A irredutibilidade do valor dos benefícios é um dos objetivos da seguridade social.",o:["Certo","Errado"],c:0,e:"Art. 194, IV."},
+    {t:"A previdência social é organizada sob a forma de regime não contributivo.",o:["Certo","Errado"],c:1,e:"É contributivo (art. 201)."},
+    {t:"Saúde e assistência social independem de contribuição direta do beneficiário.",o:["Certo","Errado"],c:0,e:"Diferente da previdência, que é contributiva."}
+  ]},
+  {mat:"Direito Previdenciário",titulo:"Aula + treino: segurados do RGPS",aula:"<b>Segurados obrigatórios</b> (quem trabalha): empregado, empregado doméstico, trabalhador avulso, contribuinte individual e segurado especial. <b>Segurado facultativo</b>: quem NÃO exerce atividade remunerada e contribui por opção (ex.: estudante, dona de casa) — exige 16 anos. A <b>filiação</b> do obrigatório decorre do exercício da atividade.",qs:[
+    {t:"O empregado doméstico é segurado obrigatório do RGPS.",o:["Certo","Errado"],c:0,e:"Está no rol de obrigatórios."},
+    {t:"O segurado facultativo é aquele que exerce atividade remunerada.",o:["Certo","Errado"],c:1,e:"Facultativo NÃO exerce atividade remunerada; filia-se por opção."},
+    {t:"O segurado especial é o produtor rural/pescador artesanal em regime de economia familiar.",o:["Certo","Errado"],c:0,e:"Conceito de segurado especial."},
+    {t:"A filiação do segurado obrigatório decorre automaticamente do exercício de atividade remunerada.",o:["Certo","Errado"],c:0,e:"Para o obrigatório, filiação = exercício da atividade."}
+  ]},
+  {mat:"Direito Previdenciário",titulo:"Aula + treino: dependentes e carência",aula:"<b>Dependentes</b> — Classe I: cônjuge/companheiro(a) e filhos menores de 21 ou inválidos (dependência presumida); Classe II: pais; Classe III: irmãos menores de 21 ou inválidos. A <b>classe I exclui as demais</b>. <b>Carência</b> = nº mínimo de contribuições; <b>sem carência</b>: pensão por morte, salário-família, auxílio-acidente e incapacidade por acidente.",qs:[
+    {t:"Havendo cônjuge (classe I), os pais (classe II) não têm direito à pensão.",o:["Certo","Errado"],c:0,e:"Classe superior exclui as inferiores."},
+    {t:"A dependência econômica do cônjuge e dos filhos menores é presumida.",o:["Certo","Errado"],c:0,e:"Classe I: presunção de dependência."},
+    {t:"A pensão por morte exige carência de 180 contribuições.",o:["Certo","Errado"],c:1,e:"Pensão por morte, em regra, NÃO exige carência."},
+    {t:"As aposentadorias programadas exigem, em regra, carência de 180 contribuições.",o:["Certo","Errado"],c:0,e:"180 contribuições mensais."}
+  ]},
+  {mat:"Direito Previdenciário",titulo:"Aula + treino: benefícios (aposentadorias e auxílios)",aula:"Após a <b>EC 103/2019</b>, a aposentadoria por tempo de contribuição pura foi <b>extinta</b> (há regras de transição). Principais benefícios: aposentadoria por idade/incapacidade permanente, <b>auxílio por incapacidade temporária</b> (antigo auxílio-doença), auxílio-acidente (indenizatório), salário-maternidade (120 dias), salário-família (baixa renda), pensão por morte.",qs:[
+    {t:"A EC 103/2019 extinguiu a aposentadoria por tempo de contribuição pura.",o:["Certo","Errado"],c:0,e:"Criou regras de transição."},
+    {t:"O antigo “auxílio-doença” corresponde ao atual auxílio por incapacidade temporária.",o:["Certo","Errado"],c:0,e:"Mudança de nomenclatura."},
+    {t:"O salário-família é devido a qualquer segurado, independentemente da renda.",o:["Certo","Errado"],c:1,e:"Só ao segurado de BAIXA RENDA, por filho menor de 14 ou inválido."},
+    {t:"O salário-maternidade tem duração, em regra, de 120 dias.",o:["Certo","Errado"],c:0,e:"Regra geral de 120 dias."}
+  ]},
+  {mat:"Direito Previdenciário",titulo:"Aula + treino: assistência (BPC) e custeio",aula:"<b>Assistência (BPC/LOAS):</b> 1 salário mínimo ao idoso (<b>65+</b>) ou à pessoa com deficiência em situação de miséria — <b>independe de contribuição</b> e, em regra, não acumula com outro benefício. <b>Custeio (Lei 8.212/91):</b> contribuições sociais sobre folha, receita/faturamento e lucro; <b>salário de contribuição</b> é a base do desconto do segurado.",qs:[
+    {t:"O BPC é devido ao idoso com 65 anos ou mais em situação de miséria, independentemente de contribuição.",o:["Certo","Errado"],c:0,e:"BPC/LOAS: 65+, assistencial."},
+    {t:"O BPC exige que o beneficiário tenha contribuído para a previdência.",o:["Certo","Errado"],c:1,e:"É assistencial: independe de contribuição."},
+    {t:"O financiamento da seguridade incide, entre outras bases, sobre a folha de salários, a receita e o lucro.",o:["Certo","Errado"],c:0,e:"Art. 195, I, da CF."},
+    {t:"Salário de contribuição e salário de benefício são a mesma coisa.",o:["Certo","Errado"],c:1,e:"Salário de contribuição é a base do desconto; salário de benefício é a base de cálculo do valor do benefício."}
+  ]}
+];
+
+  var tv=document.getElementById("treinos"), lastMat="";
+  TREINOS.forEach(function(tr,ti){
+    if(tr.mat!==lastMat){lastMat=tr.mat; var dv=document.createElement("h3"); dv.className="matdiv"; dv.setAttribute("data-mat",tr.mat); dv.textContent=tr.mat; tv.appendChild(dv);}
+    var card=document.createElement("div"); card.className="card"; card.style.marginTop="16px"; card.setAttribute("data-mat",tr.mat);
+    card.innerHTML='<p class="eyebrow">'+tr.mat+'</p><h3 style="margin-top:0">'+tr.titulo+'</h3><div class="aula">'+tr.aula+'</div><div class="tq" id="treino-'+ti+'"></div>';
+    tv.appendChild(card);
+    mountQs(document.getElementById("treino-"+ti),tr.qs);
+  });
+
+  /* filtro por matéria */
+  var mats=["Todos"]; TREINOS.forEach(function(t){if(mats.indexOf(t.mat)<0)mats.push(t.mat);});
+  var mf=document.getElementById("matfilter");
+  mf.innerHTML=mats.map(function(m,i){return '<button class="'+(i===0?"on":"")+'" data-m="'+m+'">'+m+'</button>';}).join("");
+  mf.addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b)return;
+    [].forEach.call(mf.children,function(x){x.classList.remove("on");}); b.classList.add("on");
+    var m=b.getAttribute("data-m");
+    [].forEach.call(tv.children,function(c){c.style.display=(m==="Todos"||c.getAttribute("data-mat")===m)?"":"none";});
+  });
+
+  /* Banco de questões + Simulado aleatório */
+  var BANK=[];
+  [SIM2,SIM3,SIM4].forEach(function(S){S.forEach(function(q){if(q.t)BANK.push({t:q.t,o:q.o,c:q.c,e:q.e});});});
+  TREINOS.forEach(function(tr){tr.qs.forEach(function(q){BANK.push({t:q.t,o:q.o,c:q.c,e:q.e});});});
+  if(window.__SIM1)window.__SIM1.forEach(function(q){BANK.push(q);});
+  var agBtn=document.getElementById("aleatorio-gerar");
+  if(agBtn)agBtn.onclick=function(){
+    var pool=BANK.slice();
+    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+    mountList(document.getElementById("quiz-aleatorio"),pool.slice(0,Math.min(40,pool.length)));
+    agBtn.textContent="Gerar outras 40 questões";
+    var s=document.getElementById("aleatorio"); if(s)s.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+
+  /* Banco só de Conhecimentos Específicos */
+  var BANK_ESPEC=[];
+  TREINOS.forEach(function(tr){if(tr.mat==="Direito Previdenciário")tr.qs.forEach(function(q){BANK_ESPEC.push({t:q.t,o:q.o,c:q.c,e:q.e});});});
+  var egBtn=document.getElementById("espec-gerar");
+  if(egBtn)egBtn.onclick=function(){
+    var pool=BANK_ESPEC.slice();
+    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+    mountQs(document.getElementById("espec-list"),pool.slice(0,Math.min(10,pool.length)));
+    egBtn.textContent="Gerar outras 10 de Previdenciário";
+    var s=document.getElementById("especifico"); if(s)s.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+})();
+</script>
+<script>
+/* ===== Sincronização do progresso com a nuvem (Supabase) ===== */
+window.__syncReady=false; setTimeout(function(){window.__syncReady=true;},6000);
+window.DMAE_syncPull=async function(){
+  if(!window.sb)return;
+  var uid="";try{uid=localStorage.getItem("dmae:uid")||"";}catch(e){}
+  if(!uid)return;
+  try{
+    var r=await window.sb.from("progress").select("data").eq("user_id",uid).eq("slug",window.DMAE_SLUG||"dmae").maybeSingle();
+    if(r.error)return;
+    if(r.data&&r.data.data){
+      var d=r.data.data;
+      try{
+        if(d.scores)localStorage.setItem(window.DMAE_KEY("scores"),JSON.stringify(d.scores));
+        if(d.caderno)localStorage.setItem(window.DMAE_KEY("cadernoerros"),JSON.stringify(d.caderno));
+        if(d.plano)localStorage.setItem(window.DMAE_KEY("plano"),JSON.stringify(d.plano));
+        if(d.fcsrs)localStorage.setItem(window.DMAE_KEY("fcsrs"),JSON.stringify(d.fcsrs));
+        if(d.daily)localStorage.setItem(window.DMAE_KEY("daily"),JSON.stringify(d.daily));
+      }catch(e){}
+      if(window.renderDesempenho)window.renderDesempenho();
+      if(window.renderCaderno)window.renderCaderno();
+      if(window.renderProxima)window.renderProxima();
+      if(window.DMAE_planoApply)window.DMAE_planoApply();
+      if(window.DMAE_fcApply)window.DMAE_fcApply();
+      if(window.DMAE_dailyApply)window.DMAE_dailyApply();
+      window.__syncReady=true;
+    } else {
+      /* sem linha na nuvem: sobe o que já existir localmente (migração) */
+      window.__syncReady=true;
+      if(window.DMAE_syncPush)window.DMAE_syncPush(true);
+    }
+  }catch(e){}
+};
+(function(){
+  var t=null;
+  window.DMAE_syncPush=function(now){
+    if(!window.sb)return;
+    if(!window.__syncReady&&!now)return;
+    clearTimeout(t);
+    t=setTimeout(function(){
+      var uid="";try{uid=localStorage.getItem("dmae:uid")||"";}catch(e){}
+      if(!uid)return;
+      var scores=[],caderno=[],plano={},fcsrs={},daily={};
+      try{scores=JSON.parse(localStorage.getItem(window.DMAE_KEY("scores"))||"[]");}catch(e){}
+      try{caderno=JSON.parse(localStorage.getItem(window.DMAE_KEY("cadernoerros"))||"[]");}catch(e){}
+      try{plano=JSON.parse(localStorage.getItem(window.DMAE_KEY("plano"))||"{}");}catch(e){}
+      try{fcsrs=JSON.parse(localStorage.getItem(window.DMAE_KEY("fcsrs"))||"{}");}catch(e){}
+      try{daily=JSON.parse(localStorage.getItem(window.DMAE_KEY("daily"))||"{}");}catch(e){}
+      window.sb.from("progress").upsert({user_id:uid,slug:(window.DMAE_SLUG||"dmae"),data:{scores:scores,caderno:caderno,plano:plano,fcsrs:fcsrs,daily:daily},updated_at:new Date().toISOString()},{onConflict:"user_id,slug"}).then(function(){},function(){});
+    }, now?0:900);
+  };
+})();
+</script>
+<script>
+/* ===== Melhorias de aprendizado: modo estudo + meta diária/ofensiva (aditivo) ===== */
+(function(){
+  var st=document.createElement("style");
+  st.textContent=".srs{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.eopts{margin:6px 0 2px}.eopt{padding:2px 0;color:var(--muted)}.eopt.r{color:var(--green);font-weight:600}.eopt.w{color:var(--red)}.studybar{display:flex;align-items:center;gap:8px;margin:0 0 14px;font-size:14px;flex-wrap:wrap}.studybar input{width:16px;height:16px;accent-color:var(--green)}#hoje-painel{margin:0 0 14px}";
+  document.head.appendChild(st);
+
+  /* ---- meta diária + ofensiva ---- */
+  function DK(){return window.DMAE_KEY("daily");}
+  function dread(){try{return JSON.parse(localStorage.getItem(DK())||"{}");}catch(e){return {};}}
+  function tkey(dt){return dt.getFullYear()+"-"+("0"+(dt.getMonth()+1)).slice(-2)+"-"+("0"+dt.getDate()).slice(-2);}
+  function today(){return tkey(new Date());}
+  function streakOf(o){var s=0,d=new Date();if(!(o[tkey(d)]>0))d.setDate(d.getDate()-1);for(;;){var k=tkey(d);if(o[k]&&o[k]>0){s++;d.setDate(d.getDate()-1);}else break;}return s;}
+  var GOAL=20;
+  window.DMAE_addAnswers=function(n){ if(!n)return; var o=dread(),t=today(); o[t]=(o[t]||0)+n; try{localStorage.setItem(DK(),JSON.stringify(o));}catch(e){} if(window.DMAE_syncPush)window.DMAE_syncPush(); dpanel(); };
+  function dpanel(){
+    var host=document.getElementById("hoje-painel"); if(!host)return;
+    var o=dread(),n=o[today()]||0,s=streakOf(o),pct=Math.min(100,Math.round(n/GOAL*100));
+    host.innerHTML='<div class="cprow"><span>🔥 <b>Ofensiva:</b> '+s+' dia'+(s===1?"":"s")+' seguido'+(s===1?"":"s")+'</span><span class="cbar"><i style="width:'+pct+'%"></i></span><span><b>Hoje:</b> '+n+'/'+GOAL+' questões'+(n>=GOAL?' ✅':'')+'</span></div>';
+  }
+  window.DMAE_dailyApply=dpanel;
+  var prox=document.getElementById("proxima");
+  if(prox&&prox.parentNode){var p=document.createElement("div");p.id="hoje-painel";p.className="desempenho";prox.parentNode.insertBefore(p,prox.nextSibling);}
+  dpanel();
+
+  function markAnswered(q){ if(!q||q.dataset.cnt)return; q.dataset.cnt="1"; window.DMAE_addAnswers(1); }
+
+  /* ---- modo estudo (feedback imediato) ---- */
+  function SK(){return window.DMAE_KEY("studymode");}
+  function studyOn(){try{return localStorage.getItem(SK())==="1";}catch(e){return false;}}
+  var prox2=document.getElementById("proxima");
+  if(prox2&&prox2.parentNode){
+    var bar=document.createElement("label"); bar.className="studybar";
+    var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=studyOn();
+    var sp=document.createElement("span"); sp.innerHTML="<b>Modo estudo</b> — ver o porquê assim que eu respondo (em vez de só no fim). Desligado = modo prova.";
+    bar.appendChild(cb); bar.appendChild(sp);
+    var hp=document.getElementById("hoje-painel");
+    prox2.parentNode.insertBefore(bar,(hp?hp.nextSibling:prox2.nextSibling));
+    cb.onchange=function(){try{localStorage.setItem(SK(),cb.checked?"1":"0");}catch(e){}};
+  }
+  document.addEventListener("change",function(e){
+    var inp=e.target; if(!inp||inp.type!=="radio")return;
+    var q=inp.closest(".q"); if(!q)return;
+    if(!studyOn())return;
+    var expl=q.querySelector(".expl"); if(expl)expl.classList.add("show");
+    var dc=q.getAttribute("data-c");
+    if(dc!==null){
+      var opts=q.querySelectorAll(".opt"), ins=q.querySelectorAll("input");
+      [].forEach.call(opts,function(o){o.classList.remove("right","wrong");});
+      if(opts[+dc])opts[+dc].classList.add("right");
+      var v=[].indexOf.call(ins,inp); if(v!==+dc&&opts[v])opts[v].classList.add("wrong");
+    }
+    markAnswered(q);
+  });
+  /* conta ao corrigir (ambos os motores) */
+  document.addEventListener("click",function(e){
+    var b=e.target.closest(".cor"), b2=(e.target.id==="corrigir"?e.target:null);
+    var btn=b||b2; if(!btn)return;
+    var scope=btn.closest(".card")||document;
+    setTimeout(function(){ [].forEach.call(scope.querySelectorAll(".q"),function(q){ if(q.querySelector("input:checked"))markAnswered(q); }); },30);
+  });
+})();
+</script>
+</body>
+</html>
